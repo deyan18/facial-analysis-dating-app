@@ -195,7 +195,7 @@ struct ParaTiView: View {
             ForEach(vm.usuariosRango, id: \.self) { usuario in
                 if usuario.uid != vm.usuariosRango.first?.uid {
                     VStack {
-                        WebFotoCircular(url: usuario.url1, size: 100)
+                        WebFotoCircular(url: usuario.url1, size: 108)
                         TextNombre(texto: usuario.nombre)
                         if vm.DEBUG {
                             Text("ubi: \(usuario.ubicacion.coordinate.longitude):")
@@ -221,6 +221,6 @@ struct ParaTiView: View {
                     }
                 }
             }
-        }
+        }.padding(.horizontal)
     }
 }
