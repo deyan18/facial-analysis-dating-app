@@ -48,6 +48,9 @@ struct RegistrarseView: View {
             .frame(width: UIScreen.screenWidth * 0.8, height: UIScreen.screenHeight * 0.7)
             .background(.ultraThinMaterial)
             .mask(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
+            .onTapGesture {
+                hideKeyboard()
+            }
             .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
             .padding(40)
@@ -57,6 +60,7 @@ struct RegistrarseView: View {
     var botonAtras: some View {
         HStack {
             Button {
+                hideKeyboard()
                 withAnimation(.spring(response: SPRINGRESPONSE, dampingFraction: SPRINGDAMPING, blendDuration: 0)) {
                     mostrarRegistrar = false
                 }
@@ -74,6 +78,7 @@ struct RegistrarseView: View {
 
     var botonRegistrarse: some View {
         Button {
+            hideKeyboard()
             // Comprobar que los datos son correctos
             if correo != "" && contrasenia != "" && confirmar != "" {
                 registrarUsuario()

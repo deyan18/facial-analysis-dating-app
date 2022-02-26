@@ -90,6 +90,9 @@ struct CrearPerfilView: View {
         .frame(width: UIScreen.screenWidth * 0.9, height: UIScreen.screenHeight * 0.8)
         .background(.ultraThinMaterial)
         .mask(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
+        .onTapGesture {
+            hideKeyboard()
+        }
         .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
         .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
         .padding(40)

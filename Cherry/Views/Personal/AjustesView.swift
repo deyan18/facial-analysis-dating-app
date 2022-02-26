@@ -34,6 +34,9 @@ struct AjustesView: View {
             Spacer().frame(height: 50)
         }
         .padding()
+        .onTapGesture {
+            hideKeyboard()
+        }
         .navigationTitle("Ajustes")
         .onAppear(){
             correo = FirebaseManager.shared.auth.currentUser?.email ?? ""
@@ -66,6 +69,7 @@ struct AjustesView: View {
     
     var botonGuardar: some View {
         Button {
+            hideKeyboard()
             guardar()
         } label: {
             BotonPersonalizado(texto: "Guardar", color: Color.accentColor)
@@ -83,6 +87,7 @@ struct AjustesView: View {
     
     var botonCerrarSesion: some View {
         Button {
+            hideKeyboard()
             alertaCerrarSesion = true
         } label: {
             BotonPersonalizado(texto: "Cerrar Sesión", color: Color.orange)
@@ -111,6 +116,7 @@ struct AjustesView: View {
     
     var botonEliminarCuenta: some View {
         Button {
+            hideKeyboard()
             alertaEliminar = true;
         } label: {
             BotonPersonalizado(texto: "Eliminar Cuenta", color: Color.red)

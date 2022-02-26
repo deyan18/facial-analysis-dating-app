@@ -16,7 +16,7 @@ struct ChatView: View {
     @FocusState private var isFocused
 
     var body: some View {
-        ZStack {
+        VStack {
             GeometryReader { reader in
                 ScrollView {
                     ScrollViewReader { scrollReader in
@@ -25,7 +25,7 @@ struct ChatView: View {
 
                         // Para que se coloque en el sitio adecuado
                         Spacer()
-                            .frame(height: 95)
+                            .frame(height: 20)
                             .id("bottom")
                             .onReceive(chatVM.$mensajes) { _ in
                                 withAnimation(.easeOut(duration: 0.5)) {
@@ -41,12 +41,14 @@ struct ChatView: View {
                             }
                     }
                 }
-            }.ignoresSafeArea(edges: .bottom)
-
-            VStack {
-                Spacer()
-                toolbarView() // Barra con textfield y boton
+                .onTapGesture {
+                    hideKeyboard()
+                }
             }
+
+            
+                toolbarView() // Barra con textfield y boton
+            
         }
 
         .navigationTitle(vm.usuarioSeleccionado?.nombre ?? "")
@@ -121,12 +123,15 @@ struct ChatView: View {
                 if mensaje.texto == "*like*" {
                     if mensaje.emisorId == vm.usuarioSeleccionado!.uid {
                         mensajeLike(esRecibido: true, nombre: vm.usuarioSeleccionado?.nombre ?? "")
+                            .focused($isFocused)
                     } else {
                         mensajeLike(esRecibido: false, nombre: vm.usuarioSeleccionado?.nombre ?? "")
+                            .focused($isFocused)
                     }
 
                 } else {
                     BurbujaMensaje(esRecibido: esRecibido, mensaje: mensaje, viewWidth: viewWidth)
+                        .focused($isFocused)
                 }
             }
         }

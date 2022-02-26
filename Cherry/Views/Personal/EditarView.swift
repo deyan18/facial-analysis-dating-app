@@ -56,6 +56,7 @@ struct EditarView: View {
     
     var body: some View {
         ZStack{
+                
             ScrollView(showsIndicators: false){
                 VStack{ //Dividido en grupos porque no puede haber mas de 10 componentes en una view
                     Group{
@@ -82,6 +83,8 @@ struct EditarView: View {
                 .padding()
                 .navigationTitle("Editar Perfil")
                 
+            }.onTapGesture {
+                hideKeyboard()
             }
             
             if vm.loadingView {
@@ -173,6 +176,7 @@ struct EditarView: View {
         VStack{
             SeccionTitulo("Edad")
             DatePicker("Fecha de Nacimiento", selection: $fechaNacimiento, in: fechaComienzo...fechaFinal, displayedComponents: [.date])
+                
         }.padding(.vertical)
     }
     
@@ -214,6 +218,7 @@ struct EditarView: View {
                     .padding(.vertical, 2)
                 }
             }
+            
         }.padding(.vertical)
     }
     
@@ -225,6 +230,7 @@ struct EditarView: View {
                 botonFotoView(foto: $foto2, url: vm.usuarioPrincipal?.url2 ?? "")
                 botonFotoView(foto: $foto3, url: vm.usuarioPrincipal?.url3 ?? "")
             }
+            
         }.padding(.vertical)
     }
     

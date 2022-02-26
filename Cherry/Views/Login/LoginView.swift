@@ -34,6 +34,9 @@ struct LoginView: View {
     var body: some View {
         ZStack {
             FondoPersonalizado()
+                .onTapGesture {
+                    hideKeyboard()
+                }
             VStack{
                 Spacer()
                 HStack{
@@ -68,6 +71,10 @@ struct LoginView: View {
                         // Header
                         LogoLogin()
                             .offset(y: 30)
+                            .onTapGesture {
+                                correo = "alina@ual.es"
+                                contrasenia = "123456"
+                            }
                         
 
                         if(mostrarOlvidada){
@@ -84,6 +91,9 @@ struct LoginView: View {
                 .frame(width: UIScreen.screenWidth * 0.8, height: UIScreen.screenHeight * 0.65)
                 .background(.ultraThinMaterial)
                 .mask(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
+                .onTapGesture {
+                    hideKeyboard()
+                }
                 .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
                 .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
                 .padding(40)
@@ -136,6 +146,7 @@ struct LoginView: View {
     
     var botonRestaurar: some View {
         Button {
+            hideKeyboard()
             if(correo != ""){
                 restaurarContrasenia()
             }
@@ -155,6 +166,7 @@ struct LoginView: View {
     
     var botonVolver: some View {
         Button {
+            hideKeyboard()
             withAnimation {
                 mostrarOlvidada = false
 
@@ -181,6 +193,7 @@ struct LoginView: View {
     var botonDatosOlvidados: some View {
         // Boton Contrasenia olvidada
         Button {
+            hideKeyboard()
             withAnimation {
                 mostrarOlvidada = true
             }
@@ -194,6 +207,7 @@ struct LoginView: View {
 
     var botonIniciarSesion: some View {
         Button {
+            hideKeyboard()
             if correo != "" && contrasenia != "" {
                 loginUsuario()
             }
@@ -207,6 +221,7 @@ struct LoginView: View {
 
     var botonRegistrarse: some View {
         Button {
+            hideKeyboard()
             withAnimation(.spring(response: SPRINGRESPONSE, dampingFraction: SPRINGDAMPING, blendDuration: 0)) {
                 mostrarRegistrar.toggle()
             }

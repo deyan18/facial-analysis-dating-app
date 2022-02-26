@@ -47,6 +47,7 @@
 		8BB4FF1E27BE573300D2116C /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB4FF1D27BE573200D2116C /* LocationManager.swift */; };
 		8BB4FF2027BE576000D2116C /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB4FF1F27BE576000D2116C /* ChatViewModel.swift */; };
 		8BB52A8927B451E4003A9196 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB52A8827B451E4003A9196 /* ImagePicker.swift */; };
+		8BDFA5C927CA98600040899A /* ViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BDFA5C827CA98600040899A /* ViewExtension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -107,6 +108,7 @@
 		8BB4FF1D27BE573200D2116C /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		8BB4FF1F27BE576000D2116C /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
 		8BB52A8827B451E4003A9196 /* ImagePicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		8BDFA5C827CA98600040899A /* ViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewExtension.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -294,6 +296,7 @@
 				8B75D66927B96BD4000C7970 /* TransicionesExtension.swift */,
 				8B83ED0027BD5E8300066C60 /* ColorExtension.swift */,
 				8B83ED0227BD644100066C60 /* SheetPersonalizado.swift */,
+				8BDFA5C827CA98600040899A /* ViewExtension.swift */,
 			);
 			path = Extensiones;
 			sourceTree = "<group>";
@@ -466,6 +469,7 @@
 				3368CE122700F690007749B6 /* PerfilView.swift in Sources */,
 				8BB52A8927B451E4003A9196 /* ImagePicker.swift in Sources */,
 				8BB4FF2027BE576000D2116C /* ChatViewModel.swift in Sources */,
+				8BDFA5C927CA98600040899A /* ViewExtension.swift in Sources */,
 				8B75D66627B96B81000C7970 /* FechaExtension.swift in Sources */,
 				8B6C213C27A5707C00BB5837 /* FirebaseManager.swift in Sources */,
 				8B75D66827B96BB1000C7970 /* VariablesGlobales.swift in Sources */,
