@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftUIX
 
 struct ChatView: View {
     @EnvironmentObject var vm: MainViewModel
@@ -15,8 +16,9 @@ struct ChatView: View {
     @State private var texto = ""
     @FocusState private var isFocused
 
+
     var body: some View {
-        VStack {
+        ZStack() {
             GeometryReader { reader in
                 ScrollView {
                     ScrollViewReader { scrollReader in
@@ -25,11 +27,11 @@ struct ChatView: View {
 
                         // Para que se coloque en el sitio adecuado
                         Spacer()
-                            .frame(height: 20)
+                            .frame(height: 60)
                             .id("bottom")
                             .onReceive(chatVM.$mensajes) { _ in
-                                withAnimation(.easeOut(duration: 0.5)) {
                                     DispatchQueue.main.async {
+                                        withAnimation(.easeOut(duration: 0.5)) {
                                         scrollReader.scrollTo("bottom", anchor: .bottom)
                                     }
                                 }
@@ -41,13 +43,17 @@ struct ChatView: View {
                             }
                     }
                 }
+                .focused($isFocused)
                 .onTapGesture {
                     hideKeyboard()
                 }
             }
 
-            
+            VStack{
+                Spacer()
                 toolbarView() // Barra con textfield y boton
+
+            }
             
         }
 
@@ -123,15 +129,12 @@ struct ChatView: View {
                 if mensaje.texto == "*like*" {
                     if mensaje.emisorId == vm.usuarioSeleccionado!.uid {
                         mensajeLike(esRecibido: true, nombre: vm.usuarioSeleccionado?.nombre ?? "")
-                            .focused($isFocused)
                     } else {
                         mensajeLike(esRecibido: false, nombre: vm.usuarioSeleccionado?.nombre ?? "")
-                            .focused($isFocused)
                     }
 
                 } else {
                     BurbujaMensaje(esRecibido: esRecibido, mensaje: mensaje, viewWidth: viewWidth)
-                        .focused($isFocused)
                 }
             }
         }
@@ -144,16 +147,22 @@ struct mensajeLike: View {
     var nombre: String
 
     var body: some View {
-        if esRecibido {
-            Text("¡\(nombre) le ha dado 💜 a tu perfil!")
-                .font(.footnote)
-                .padding(8)
+        HStack{
+            Spacer()
+            if esRecibido {
+                Text("¡\(nombre) le ha dado 💜 a tu perfil!")
+                    .font(.footnote)
+                    .padding(8)
 
-        } else {
-            Text("¡Has dado 💜 al perfil de \(nombre)!")
-                .font(.footnote)
-                .padding(8)
+            } else {
+                Text("¡Has dado 💜 al perfil de \(nombre)!")
+                    .font(.footnote)
+                    .padding(8)
+            }
+            Spacer()
+
         }
+        
     }
 }
 
