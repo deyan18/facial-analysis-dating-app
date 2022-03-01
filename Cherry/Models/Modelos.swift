@@ -101,13 +101,6 @@ struct AtributoModel: Identifiable, Hashable{
     var esSeleccionado: Bool = false
 }
 
-struct SimilitudModel: Decodable{
-    var urlPrincipal: String = ""
-    var urls: [String] = []
-    var uids: [String] = []
-    var distanciasRasgos: [Double] = []
-
-}
 
 struct GeneroModel{
     var id = UUID()

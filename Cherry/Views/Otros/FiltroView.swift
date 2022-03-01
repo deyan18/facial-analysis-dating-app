@@ -64,7 +64,7 @@ struct FiltroView: View {
         vm.usuarioPrincipal?.edadMax = max
         vm.actualizarLimitesEdad()
         vm.actualizarRasgosBusca()
-        vm.calcularRecomendaciones()
+        //vm.calcularRecomendaciones()
     }
     
     var botonGuardar: some View{

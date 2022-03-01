@@ -18,8 +18,7 @@ class MainViewModel: ObservableObject {
     @Published var usuarioPrincipal: UsuarioModel? //Guardamos el usuario que ha iniciado sesión
     @Published var usuarios: [UsuarioModel] = [] //Lista con todos los usuario de la bbdd
     @Published var usuariosRango: [UsuarioModel] = [] //Lista con los usuarios dentro del rango de distancia, edad, sexo y ordenados por preferncia de similitud
-    @Published var usuariosSimilitud = SimilitudModel() //Guarda lista de uids, urls y distancias en rasgos. Se utiliza para la llamada a la api con DeepFace
-
+    @Published var usuariosCompatibles: [UsuarioModel] = []
     //Toggles
     @Published var abrirFiltro = false
     @Published var usuarioLoggedIn = false //Para indicar que el login es correcto y pasar a vista Para Ti / Para cerrar sesion y volver a login
@@ -28,7 +27,6 @@ class MainViewModel: ObservableObject {
     @Published var errorApi = false
     //Limites
     @Published var distanciaPermitida = 50000.0 //Rango de distancia (en metros) de usuarios que se van a mostrar
-
 
     init() {
         self.fetchAtributos()
@@ -62,6 +60,7 @@ class MainViewModel: ObservableObject {
     
     private func cargarDatosUsuario(){
         self.fetchUsuarios()
+        self.fetchUsuariosCompatibles()
         self.fetchRecientes()
     }
 
@@ -74,13 +73,13 @@ class MainViewModel: ObservableObject {
     //Bajar todos los usuarios de la BD
     func fetchUsuarios() {
         usuarios.removeAll() //Eliminamos los del fetch anterior
-        FirebaseManager.shared.firestore.collection("usuarios").getDocuments { snapshot, err in
+        FirebaseManager.shared.firestore.collection("usuarios").addSnapshotListener { querySnapshot, err in
             if let err = err {
                 print("Error obteniendo usuarios: \(err)")
                 return
             }
 
-            snapshot?.documents.forEach({ snap in
+            querySnapshot?.documents.forEach({ snap in
                 let u = UsuarioModel(data: snap.data())
                 //Si el usuario NO es el que ha iniciado sesión lo introducimos en usuarios[]
                 if u.uid != FirebaseManager.shared.auth.currentUser?.uid {
@@ -93,15 +92,53 @@ class MainViewModel: ObservableObject {
             }
             
             //Una vez tengamos todos los usuarios pasamos a ver cuales cumplen los criterios
-            self.tratarUsuarios()
+            //self.calcularRasgos()
+
         }
     }
+    private var compatiblesListener: ListenerRegistration?
+
+    func fetchUsuariosCompatibles() {
+        guard let uidPrincipal = usuarioPrincipal?.uid else { return }
+        compatiblesListener?.remove()
+        
+        FirebaseManager.shared.firestore
+            .collection("compatibles")
+            .document(uidPrincipal)
+            .collection("usuarios")
+            .addSnapshotListener { querySnapshot, err in
+                if let err = err {
+                    print("Error obteniendo comparaciones \(err)")
+                    return
+                }
+                
+                print("FUERA")
+
+                self.usuariosCompatibles.removeAll() //Eliminamos los del fetch anterior
+                querySnapshot?.documents.forEach({ queryDoc in
+                    let data = queryDoc.data()
+            
+                    print("DENTRO \(self.usuarios.count)")
+                
+
+                        for (index, u) in self.usuarios.enumerated(){
+                            print("COMPROBANDO ")
+                            if data["uid"] as! String == u.uid {
+                                self.usuarios[index].distanciaRasgos = data["distanciaRasgos"] as? Double ?? -1.0
+                                self.usuariosCompatibles.append(self.usuarios[index])
+                            }
+                        }
+                    
+                })
+            }
+    }
     
-    private func tratarUsuarios(){
-        self.similitudFotos()
-        self.calcularRecomendaciones()
+    private func calcularRasgos(){
+        self.calcularRangoDistancia()
+        self.enviarParaComparar()
     }
 
+    /*
     //Comprueba rangos de edad, distancia, genero y ordena por similitud o diferencia
     func calcularRecomendaciones() {
         usuariosRango.removeAll() //Vaciamos de la llamada anterior
@@ -138,7 +175,8 @@ class MainViewModel: ObservableObject {
             }
         }
     }
-
+     */
+/*
     //Llama a la api con DeepFace para obtener las diferencias en los rasgos
     func similitudFotos() {
         usuariosSimilitud = SimilitudModel() //Vaciamos de la llamada anterior
@@ -199,7 +237,8 @@ class MainViewModel: ObservableObject {
             }
         }
     }
-
+*/
+    /*
     //Insertamos las distancias de rasgos obtenidas en los usuarios correspondientes
     func actualizarSimilitud(_ usuariosSimilitud: SimilitudModel) {
         DispatchQueue.main.async {
@@ -221,6 +260,88 @@ class MainViewModel: ObservableObject {
             self.calcularRecomendaciones()
         }
     }
+    */
+    func calcularRangoDistancia(){
+        usuariosRango.removeAll() //Vaciamos de la llamada anterior
+        
+        let genero = usuarioPrincipal?.genero ?? ""
+        let generosBuscaPrincipal = usuarioPrincipal?.busco ?? []
+
+        for (index, usuario) in usuarios.enumerated() {
+            // Calculamos la distancia del usuario al usuario principal
+            usuarios[index].distanciaMetros = usuario.ubicacion.distance(from: usuarioPrincipal?.ubicacion ?? CLLocation(latitude: 0.0, longitude: 0.0))
+
+            if(DEBUGCONSOLE){
+                print("Distancia usuario: \(usuarios[index].distanciaMetros), perimitida: \(distanciaPermitida)")
+            }
+            
+            // Comprobamos si los generos que buscan corresponden
+            if generosBuscaPrincipal.contains(usuario.genero) && usuario.busco.contains(genero) {
+                // Comprobamos si la distancia permitida se cumple
+                if usuarios[index].distanciaMetros <= distanciaPermitida {
+                    usuariosRango.append(usuarios[index])
+                }
+            }
+        }
+    }
+    
+    func enviarParaComparar(){
+        
+        guard let uidPrincipal = usuarioPrincipal?.uid else {return}
+        guard let urlPrincipal = usuarioPrincipal?.urlV else {return}
+        var urls: [String] = []
+        var uids: [String] = []
+        var distanciasRasgos: [Double] = []
+        usuariosRango.forEach { usuario in
+            urls.append(usuario.urlV)
+            uids.append(usuario.uid)
+            distanciasRasgos.append(-1.0) //Distancia por defecto
+        }
+
+        if apiEnUso { //Si ya hay una llamada a la api cancelamos
+            return
+        } else {
+            apiEnUso = true
+            
+            if(DEBUGCONSOLE){
+                print("LLAMADA A API INICIADA")
+            }
+
+            let json = ["uidPrincipal": uidPrincipal,"urlPrincipal": urlPrincipal, "urls": urls, "uids": uids, "distanciasRasgos": distanciasRasgos] as [String: Any]
+            do {
+                let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
+
+                let url = NSURL(string: "\(URLAPI)/similitudFotos/")!
+                let request = NSMutableURLRequest(url: url as URL)
+                request.httpMethod = "POST"
+
+                request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+                request.httpBody = jsonData
+
+                let task = URLSession.shared.dataTask(with: request as URLRequest) { data, _, error in
+                    if error != nil {
+                        print("Error -> \(error)")
+                        DispatchQueue.main.async {
+                            self.apiEnUso = false
+                            self.errorApi = true
+                        }
+                        return
+                    }
+                    DispatchQueue.main.async {
+                    self.apiEnUso = false
+                    }
+                }
+
+                task.resume()
+
+            } catch {
+                DispatchQueue.main.async {
+                    self.apiEnUso = false
+                    self.errorApi = true
+                }
+                print(error)
+            }
+        }    }
 
     @Published var recientes: [RecienteModel] = []
     private var recientesListener: ListenerRegistration?

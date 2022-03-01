@@ -343,7 +343,6 @@ struct EditarView: View {
     
     //Funcion que se llama onAppear que rellena los campos con los datos de la BD
     func cargarDatos(){
-        vm.fetchAtributos()
         //Valor de campos de texto, picker de sexo y fecha nacimiento
         nombre = vm.usuarioPrincipal?.nombre ?? ""
         sobreMi = vm.usuarioPrincipal?.sobreMi ?? ""
@@ -363,6 +362,11 @@ struct EditarView: View {
                 }
             }
         })
+        
+        //Limpiamos los atributos
+        for (index, _) in vm.atributos.enumerated() {
+           vm.atributos[index].esSeleccionado = false
+        }
         
         
         //Lista de atributos previamente seleccioandos

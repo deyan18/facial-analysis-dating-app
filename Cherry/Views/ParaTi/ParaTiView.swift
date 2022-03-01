@@ -66,7 +66,7 @@ struct ParaTiView: View {
     }
 
     private func cambioUbicacion() {
-        vm.calcularRecomendaciones()
+        //vm.calcularRecomendaciones()
         if vm.usuarioPrincipal?.ubicacion != nil {
             vm.actualizarUbicacion(ubicacion: vm.usuarioPrincipal?.ubicacion ?? CLLocation(latitude: 0.0, longitude: 0.0))
         }
@@ -146,15 +146,15 @@ struct ParaTiView: View {
         }
     }
 
-    // Primera persona de la lista de usuariosRango
+    // Primera persona de la lista de usuariosCompatibles
     var personaMasRecomendada: some View {
         ZStack {
             VStack {
                 // Foto grande
-                FotoMasRecomendado(url: vm.usuariosRango.first?.url1 ?? "")
+                FotoMasRecomendado(url: vm.usuariosCompatibles.first?.url1 ?? "")
                     .onTapGesture {
-                        vm.usuarioSeleccionado = vm.usuariosRango.first
-                        usuarioSeleccionado = vm.usuariosRango.first
+                        vm.usuarioSeleccionado = vm.usuariosCompatibles.first
+                        usuarioSeleccionado = vm.usuariosCompatibles.first
                         abrirPerfil.toggle()
                     }
                     .sheet(item: $usuarioSeleccionado) {
@@ -162,14 +162,14 @@ struct ParaTiView: View {
                         PerfilView(usuario: model, esSheet: true, mostrarBotones: true, abrirChat: $abrirChat)
                     }
 
-                SemiTitulo(vm.usuariosRango.first?.nombre ?? "")
+                SemiTitulo(vm.usuariosCompatibles.first?.nombre ?? "")
 
                 if vm.DEBUG {
-                    Text("ubi: \(vm.usuariosRango.first?.ubicacion.coordinate.longitude ?? -1.0):\(vm.usuariosRango.first?.ubicacion.coordinate.latitude ?? -1.0)")
+                    Text("ubi: \(vm.usuariosCompatibles.first?.ubicacion.coordinate.longitude ?? -1.0):\(vm.usuariosCompatibles.first?.ubicacion.coordinate.latitude ?? -1.0)")
                         .font(.caption)
-                    Text("disMetros: \(vm.usuariosRango.first?.distanciaMetros ?? -1.0)m")
+                    Text("disMetros: \(vm.usuariosCompatibles.first?.distanciaMetros ?? -1.0)m")
                         .font(.caption)
-                    Text("disRasgos: \(vm.usuariosRango.first?.distanciaRasgos ?? -1.0)")
+                    Text("disRasgos: \(vm.usuariosCompatibles.first?.distanciaRasgos ?? -1.0)")
                         .font(.caption)
                 }
             }
@@ -189,11 +189,11 @@ struct ParaTiView: View {
             .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
     }
 
-    // Lista con el resto de personas en usuariosRango
+    // Lista con el resto de personas en usuariosCompatibles
     var listaPersonas: some View {
         LazyVGrid(columns: columns) {
-            ForEach(vm.usuariosRango, id: \.self) { usuario in
-                if usuario.uid != vm.usuariosRango.first?.uid {
+            ForEach(vm.usuariosCompatibles, id: \.self) { usuario in
+                if usuario.uid != vm.usuariosCompatibles.first?.uid {
                     VStack {
                         WebFotoCircular(url: usuario.url1, size: 108)
                         TextNombre(texto: usuario.nombre)
