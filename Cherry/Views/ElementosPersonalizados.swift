@@ -9,18 +9,6 @@ import SwiftUI
 import SDWebImageSwiftUI
 import CoreLocation
 
-struct ElementosPersonalizados: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
-
-struct ElementosPersonalizados_Previews: PreviewProvider {
-    static var previews: some View {
-        ElementosPersonalizados()
-    }
-}
-
 struct TextFieldPersonalizado: View{
     var placeholder: String
     @Binding var texto: String
@@ -291,15 +279,7 @@ struct LogoLogin: View{
     }
 }
 
-func calcularEdad(fecha: Date) -> Int{
-    var age: Int
-    let cumple = Calendar.current.dateComponents([.year, .month, .day], from: fecha)
-    let now = Calendar.current.dateComponents([.year, .month, .day], from: Date.now)
-    let ageComponents = Calendar.current.dateComponents([.year], from: cumple, to: now)
-    
-    age = ageComponents.year!
-    return age
-}
+
 
 struct AtributoView: View {
     var texto: String

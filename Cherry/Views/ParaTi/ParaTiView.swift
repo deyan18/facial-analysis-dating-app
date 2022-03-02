@@ -46,11 +46,10 @@ struct ParaTiView: View {
             }
             .navigationBarHidden(true)
             .onAppear {
-                cargarDatos()
-            }
-            .onChange(of: vm.usuarioPrincipal?.ubicacion) { _ in
+                vm.esconderBarra = false
                 cambioUbicacion()
             }
+
             .alert(isPresented: $vm.errorApi) {
                 Alert(
                     title: Text("Problema con servidor"),
@@ -60,15 +59,15 @@ struct ParaTiView: View {
         }
     }
     
-    private func cargarDatos() {
-        vm.esconderBarra = false
-        vm.usuarioPrincipal?.ubicacion = lm.lastLocation ?? CLLocation(latitude: 0.0, longitude: 0.0)
-    }
-
-    private func cambioUbicacion() {
+    func cambioUbicacion() {
         //vm.calcularRecomendaciones()
-        if vm.usuarioPrincipal?.ubicacion != nil {
-            vm.actualizarUbicacion(ubicacion: vm.usuarioPrincipal?.ubicacion ?? CLLocation(latitude: 0.0, longitude: 0.0))
+        guard let ubicacionGuardada = vm.usuarioPrincipal?.ubicacion else {return}
+        guard let ubicacionActual = lm.lastLocation else {return}
+        let distancia = ubicacionGuardada.distance(from: ubicacionActual)
+        print("DISTANCIA: \(distancia)")
+        if distancia > DISTANCIA_MAX_ACTUALIZAR {
+            vm.actualizarUbicacion(ubicacion: ubicacionActual)
+            vm.calcularCompatibles()
         }
     }
 
@@ -98,7 +97,7 @@ struct ParaTiView: View {
                     .padding()
             } else {
                 Button {
-                    vm.fetchUsuarios()
+                    vm.calcularCompatibles()
                 } label: {
                     Image("Logo")
                         .resizable()

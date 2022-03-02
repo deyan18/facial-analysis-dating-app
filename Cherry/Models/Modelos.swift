@@ -51,6 +51,16 @@ struct UsuarioModel: Hashable, Identifiable {
     }
 }
 
+func calcularEdad(fecha: Date) -> Int{
+    var age: Int
+    let cumple = Calendar.current.dateComponents([.year, .month, .day], from: fecha)
+    let now = Calendar.current.dateComponents([.year, .month, .day], from: Date.now)
+    let ageComponents = Calendar.current.dateComponents([.year], from: cumple, to: now)
+    
+    age = ageComponents.year!
+    return age
+}
+
 struct MensajeModel: Identifiable{
     
     let id : UUID = UUID()

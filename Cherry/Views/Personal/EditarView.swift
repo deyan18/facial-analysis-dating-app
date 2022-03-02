@@ -156,6 +156,9 @@ struct EditarView: View {
         .onAppear(){
             cargarDatos()
         }
+        .onChange(of: fotoV) { e in
+            print("fotocambiada")
+        }
     }
     
     var editarNombre: some View{
@@ -524,6 +527,7 @@ struct EditarView: View {
                             }
                             
                             vm.fetchUsuarioActual()
+                            vm.calcularCompatibles()
                         }
 
                 }

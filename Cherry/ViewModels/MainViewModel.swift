@@ -70,14 +70,16 @@ class MainViewModel: ObservableObject {
         try? FirebaseManager.shared.auth.signOut()
     }
 
+    private var usuariosListener: ListenerRegistration?
     //Bajar todos los usuarios de la BD
     func fetchUsuarios() {
-        usuarios.removeAll() //Eliminamos los del fetch anterior
-        FirebaseManager.shared.firestore.collection("usuarios").addSnapshotListener { querySnapshot, err in
+        usuariosListener?.remove()
+        usuariosListener = FirebaseManager.shared.firestore.collection("usuarios").addSnapshotListener { querySnapshot, err in
             if let err = err {
                 print("Error obteniendo usuarios: \(err)")
                 return
             }
+            self.usuarios.removeAll() //Eliminamos los del fetch anterior
 
             querySnapshot?.documents.forEach({ snap in
                 let u = UsuarioModel(data: snap.data())
@@ -102,7 +104,7 @@ class MainViewModel: ObservableObject {
         guard let uidPrincipal = usuarioPrincipal?.uid else { return }
         compatiblesListener?.remove()
         
-        FirebaseManager.shared.firestore
+        compatiblesListener = FirebaseManager.shared.firestore
             .collection("compatibles")
             .document(uidPrincipal)
             .collection("usuarios")
@@ -113,19 +115,21 @@ class MainViewModel: ObservableObject {
                 }
                 
                 print("FUERA")
-
                 self.usuariosCompatibles.removeAll() //Eliminamos los del fetch anterior
                 querySnapshot?.documents.forEach({ queryDoc in
                     let data = queryDoc.data()
             
                     print("DENTRO \(self.usuarios.count)")
-                
 
                         for (index, u) in self.usuarios.enumerated(){
-                            print("COMPROBANDO ")
+                            print("COMPROBANDO:")
+                            print("data[uid]: \(data["uid"] as! String)")
+                            print("u.uid: \(u.uid)")
+
                             if data["uid"] as! String == u.uid {
                                 self.usuarios[index].distanciaRasgos = data["distanciaRasgos"] as? Double ?? -1.0
                                 self.usuariosCompatibles.append(self.usuarios[index])
+                                print("AÑADIDO: \(self.usuarios[index].nombre)")
                             }
                         }
                     
@@ -133,7 +137,8 @@ class MainViewModel: ObservableObject {
             }
     }
     
-    private func calcularRasgos(){
+    //Coge los usuarios dentro del radio permitido y los pasa por la api con DeepFace
+    func calcularCompatibles(){
         self.calcularRangoDistancia()
         self.enviarParaComparar()
     }
@@ -293,10 +298,14 @@ class MainViewModel: ObservableObject {
         var uids: [String] = []
         var distanciasRasgos: [Double] = []
         usuariosRango.forEach { usuario in
+            print("mando a: \(usuario.nombre)")
             urls.append(usuario.urlV)
             uids.append(usuario.uid)
             distanciasRasgos.append(-1.0) //Distancia por defecto
         }
+
+        print("usuariosRango: \(usuariosRango.count)")
+        print("usuarios: \(usuarios.count)")
 
         if apiEnUso { //Si ya hay una llamada a la api cancelamos
             return
@@ -336,8 +345,10 @@ class MainViewModel: ObservableObject {
 
             } catch {
                 DispatchQueue.main.async {
+                    
                     self.apiEnUso = false
                     self.errorApi = true
+                   
                 }
                 print(error)
             }
@@ -439,20 +450,21 @@ class MainViewModel: ObservableObject {
 
     func actualizarUbicacion(ubicacion: CLLocation) {
         guard let uid = usuarioPrincipal?.uid else { return }
-        let data = ["ubicacion": GeoPoint(latitude: ubicacion.coordinate.latitude, longitude: ubicacion.coordinate.longitude ?? 0.0)]
+        let data = ["ubicacion": GeoPoint(latitude: ubicacion.coordinate.latitude, longitude: ubicacion.coordinate.longitude )]
         FirebaseManager.shared.firestore.collection("usuarios").document(uid).updateData(data)
+        usuarioPrincipal?.ubicacion = ubicacion
     }
 
     func actualizarLimitesEdad() {
         guard let uid = usuarioPrincipal?.uid else { return }
         let data = ["edadMin": usuarioPrincipal?.edadMin, "edadMax": usuarioPrincipal?.edadMax]
-        FirebaseManager.shared.firestore.collection("usuarios").document(uid).updateData(data)
+        FirebaseManager.shared.firestore.collection("usuarios").document(uid).updateData(data as [String : Any])
     }
 
     func actualizarRasgosBusca() {
         guard let uid = usuarioPrincipal?.uid else { return }
         let data = ["buscaSimilar": usuarioPrincipal?.buscaSimilar]
-        FirebaseManager.shared.firestore.collection("usuarios").document(uid).updateData(data)
+        FirebaseManager.shared.firestore.collection("usuarios").document(uid).updateData(data as [String : Any])
     }
 }
 
