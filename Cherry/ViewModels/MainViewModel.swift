@@ -134,6 +134,15 @@ class MainViewModel: ObservableObject {
                         }
                     
                 })
+                
+                DispatchQueue.main.async {
+                    //Odenamos la lista ya sea por similitud o diferencia
+                    if self.usuarioPrincipal?.buscaSimilar ?? true {
+                        self.usuariosCompatibles = self.usuariosCompatibles.sorted(by: { $0.distanciaRasgos < $1.distanciaRasgos })
+                    } else {
+                        self.usuariosCompatibles = self.usuariosCompatibles.sorted(by: { $0.distanciaRasgos > $1.distanciaRasgos })
+                    }
+                }
             }
     }
     
@@ -423,7 +432,7 @@ class MainViewModel: ObservableObject {
 
     func eliminarUsuarioActual() {
         guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
-        let refFotos = [FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto1"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto2"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto3"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoV")]
+        let refFotos = [FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto1"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto2"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto3"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoV"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoTemp")]
 
         refFotos.forEach { ref in
             ref.delete { err in

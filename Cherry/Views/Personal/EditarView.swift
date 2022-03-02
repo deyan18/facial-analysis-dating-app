@@ -49,10 +49,10 @@ struct EditarView: View {
     var fotoEmpty: UIImage = UIImage.init(named:"Vacio")! //Para comparar si una foto se ha alterado
 
     //Alertas
-    @State var fotoNoEsValida = false
+    @State var fotoValida = false
     @State var faltanDatos = false
     @State var apiErrorGuardar = false
-
+    @State var alertFoto = false
     
     var body: some View {
         ZStack{
@@ -97,7 +97,7 @@ struct EditarView: View {
             }
             
             Spacer()
-                .alert(isPresented: $fotoNoEsValida) {
+                .alert(isPresented: $alertFoto) {
                     Alert(
                         title: Text("Foto No Válida"),
                         message: Text("La foto de cara no es válida. Vuelva a probar con otra.")
@@ -157,7 +157,7 @@ struct EditarView: View {
             cargarDatos()
         }
         .onChange(of: fotoV) { e in
-            print("fotocambiada")
+            subirFotoTemp()
         }
     }
     
@@ -383,6 +383,34 @@ struct EditarView: View {
         
     }
     
+    private func subirFotoTemp(){
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else{return}
+        
+        vm.loadingView = true
+        let refFotoV = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoTemp")
+        guard let fotoVData = fotoV.jpegData(compressionQuality: 0.8) else {return}
+        refFotoV.putData(fotoVData, metadata: nil) {metadata, err in
+            if let err = err {
+                print("Error subiendo fotoTemp: \(err)")
+                return
+            }
+            
+            refFotoV.downloadURL { urlTemp, err in
+                if let err = err {
+                    print("Error descargando url fotoTemp: \(err)")
+                    return
+                }
+                
+                if let urlTemp = urlTemp{
+                    print("Correcto url fotoTemp: \(urlTemp.absoluteString)")
+                    
+                    //Para comprobar que la foto es valida
+                    validarFoto(url: urlTemp.absoluteString)
+                }
+                
+            }}
+    }
+    
     private func guardarDatos(){
         vm.loadingView = true
         //Para las tareas asincronas
@@ -473,9 +501,8 @@ struct EditarView: View {
                 dispatchSemaphore.wait()
             }
             
-            //Si se ha cambiado la fotoV se vuelve a subir a la BD
-            //Ademas se comprueba si la foto es valida usando DeepFace
-            if(fotoV != fotoEmpty){
+            //Si se ha cambiado la fotoV y es valida se vuelve a subir a la BD
+            if(fotoValida){
                 
                 let refFotoV = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoV")
                 guard let fotoVData = fotoV.jpegData(compressionQuality: 0.8) else {return}
@@ -496,9 +523,6 @@ struct EditarView: View {
                         self.urlV = urlV?.absoluteString ?? ""
                         
                         print("Correcto url fotoV: \(urlV?.absoluteString ?? "")")
-                        
-                        //Para comprobar que la foto es valida
-                        validarFoto(url: self.urlV)
                         
                         dispatchSemaphore.signal()
                         dispatchGroup.leave()
@@ -526,6 +550,7 @@ struct EditarView: View {
                                 return
                             }
                             
+                            vm.loadingView = false
                             vm.fetchUsuarioActual()
                             vm.calcularCompatibles()
                         }
@@ -566,7 +591,8 @@ struct EditarView: View {
                             //Para alerta
                             DispatchQueue.main.async {
                                 vm.loadingView = false
-                                self.fotoNoEsValida = !result
+                                self.fotoValida = result
+                                self.alertFoto = !self.fotoValida
                             }
 
                         } catch {
@@ -576,6 +602,10 @@ struct EditarView: View {
                     
                     task.resume()
                 } catch {
+                    DispatchQueue.main.async {
+                        vm.loadingView = false
+                        apiErrorGuardar = true
+                    }
                     print(error)
                 }
             }
