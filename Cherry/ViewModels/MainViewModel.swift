@@ -27,7 +27,7 @@ class MainViewModel: ObservableObject {
     @Published var errorApi = false
     //Limites
     @Published var distanciaPermitida = 50000.0 //Rango de distancia (en metros) de usuarios que se van a mostrar
-
+    @Published var mostrarBotonInfo = true
     init() {
         self.fetchAtributos()
     }
@@ -93,6 +93,7 @@ class MainViewModel: ObservableObject {
                 print(self.usuarios)
             }
             
+            self.calcularCompatibles()
             //Una vez tengamos todos los usuarios pasamos a ver cuales cumplen los criterios
             //self.calcularRasgos()
 
@@ -301,8 +302,13 @@ class MainViewModel: ObservableObject {
     
     func enviarParaComparar(){
         
-        guard let uidPrincipal = usuarioPrincipal?.uid else {return}
-        guard let urlPrincipal = usuarioPrincipal?.urlV else {return}
+        guard let uidPrincipal = usuarioPrincipal?.uid else {
+            print("ME HE AGOBIADO UIDPRINCIPAL")
+            return}
+        guard let urlPrincipal = usuarioPrincipal?.urlV else {
+            print("ME HE AGOBIADO URLPRINCIPAL")
+
+            return}
         var urls: [String] = []
         var uids: [String] = []
         var distanciasRasgos: [Double] = []

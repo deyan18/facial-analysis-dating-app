@@ -37,29 +37,8 @@ struct LoginView: View {
                 .onTapGesture {
                     hideKeyboard()
                 }
-            VStack{
-                Spacer()
-                HStack{
-                    Button {
-                        withAnimation {
-                            abrirManualUsuario.toggle()
-                        }
-                    } label: {
-                        Image(systemName: "info")
-                            .padding(14)
-                            .background(.thinMaterial, in: Circle())
-                            .foregroundColor(.primary)
-                            .padding()
-                    }
-                    
-                    Spacer()
-                }
-                .sheet(isPresented: $abrirManualUsuario) {
-                    
-                } content: {
-                    ManualUsuarioView()
-                }
-
+            if(vm.mostrarBotonInfo){
+            botonManualUsuario
             }
             if mostrarRegistrar {
                 RegistrarseView(mostrarRegistrar: $mostrarRegistrar)
@@ -102,8 +81,40 @@ struct LoginView: View {
             }
             
             
+        }.onAppear{
+            vm.mostrarBotonInfo = true
         }
     }
+    
+    var botonManualUsuario: some View{
+            VStack{
+                Spacer()
+                HStack{
+                    Button {
+                        withAnimation {
+                            abrirManualUsuario.toggle()
+                        }
+                    } label: {
+                        Image(systemName: "info")
+                            .padding(14)
+                            .background(.thinMaterial, in: Circle())
+                            .foregroundColor(.primary)
+                            .padding()
+                    }
+                    
+                    Spacer()
+                }
+                .sheet(isPresented: $abrirManualUsuario) {
+                    
+                } content: {
+                    ManualUsuarioView()
+                }
+
+            }
+        
+        
+    }
+
     
     var elementosOlvidada: some View{
         VStack{

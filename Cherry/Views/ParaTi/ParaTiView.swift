@@ -172,7 +172,9 @@ struct ParaTiView: View {
                         .font(.caption)
                 }
             }
-            badge
+            if(!vm.usuariosCompatibles.isEmpty){
+                badge
+            }
         }
     }
 

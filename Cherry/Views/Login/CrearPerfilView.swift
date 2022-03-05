@@ -87,7 +87,7 @@ struct CrearPerfilView: View {
             }
             .padding()
         }
-        .frame(width: UIScreen.screenWidth * 0.9, height: UIScreen.screenHeight * 0.8)
+        .frame(width: UIScreen.screenWidth * 0.9, height: UIScreen.screenHeight * 0.85)
         .background(.ultraThinMaterial)
         .mask(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
         .onTapGesture {
@@ -95,12 +95,16 @@ struct CrearPerfilView: View {
         }
         .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
         .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
-        .padding(40)
         // Cuando todo se ha completado correctamente iniciamos sesion
         .onChange(of: iniciarSesion) { _ in
             if iniciarSesion {
                 vm.fetchUsuarioActual()
                 vm.usuarioLoggedIn = true
+            }
+        }
+        .onAppear{
+            withAnimation {
+                vm.mostrarBotonInfo = false
             }
         }
             
