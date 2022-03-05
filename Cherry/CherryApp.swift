@@ -18,6 +18,13 @@ struct CherryApp: App {
             MainView()
                 .environmentObject(vm)
                 .environmentObject(lm)
+                .onAppear {
+                    if FirebaseManager.shared.auth.currentUser != nil{
+                        vm.fetchUsuarioActual()
+                        vm.usuarioLoggedIn = true
+                    }
+                }
+            
         }
     }
 }

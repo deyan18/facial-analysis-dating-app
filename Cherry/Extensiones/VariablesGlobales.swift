@@ -14,7 +14,6 @@ let GRAY = Color.secondarySystemBackground
 // Parametros para la animacion spring
 var SPRINGRESPONSE = 0.55
 var SPRINGDAMPING = 0.7
-var URLAPI = "http://127.0.0.1:8000"
 var DISTANCIA_MAX_ACTUALIZAR = 10000.0 //metros
 
 //"http://192.168.1.140:8000"s

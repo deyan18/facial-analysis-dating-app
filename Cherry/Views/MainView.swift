@@ -58,10 +58,12 @@ struct MainView: View {
             .transition(AnyTransition.upSlide) // Cuando pasamos del login a la pantalla principal
             .onAppear { // Cuando cerramos y volvemos a iniciar sesion hace falta indicar que no hay que esconder la barra
                 vm.esconderBarra = false
+                
             }
         } else {
             LoginView()
                 .transition(AnyTransition.downSlide) // Cuando pasamos del login a la pantalla principal
+                
         }
     }
 }

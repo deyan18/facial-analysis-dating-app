@@ -506,7 +506,7 @@ struct CrearPerfilView: View {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
 
-            let url = NSURL(string: "\(URLAPI)/validarFoto/")!
+            let url = NSURL(string: "\(vm.urlapi)/validarFoto/")!
             let request = NSMutableURLRequest(url: url as URL)
             request.httpMethod = "POST"
 

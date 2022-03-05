@@ -26,6 +26,10 @@ struct AjustesView: View {
             Divider()
             contrasenias
             botonGuardar
+            if vm.DEBUG{
+                ipView
+            }
+            
             Spacer()
             HStack{
                 botonCerrarSesion
@@ -56,6 +60,13 @@ struct AjustesView: View {
         VStack{
             SeccionTitulo("Correo Electrónico")
             TextFieldPersonalizado(placeholder: "usuario@email.com", texto: $correo, sinAutocorrector: true, mayusculas: false)
+        }.padding(.vertical)
+    }
+    
+    var ipView: some View {
+        VStack{
+            SeccionTitulo("IP")
+            TextFieldPersonalizado(placeholder: "", texto: $vm.urlapi, sinAutocorrector: true, mayusculas: false)
         }.padding(.vertical)
     }
     
