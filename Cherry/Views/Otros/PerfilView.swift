@@ -15,7 +15,7 @@ struct PerfilView: View {
     @Environment(\.presentationMode) var presentationMode
 
     // Variables que se reciben
-    var usuario: UsuarioModel
+    var usuario: UserModel
     var esSheet: Bool
     var mostrarBotones: Bool
     @Binding var abrirChat: Bool // Toggle para abrir chat en otra vista
@@ -43,7 +43,7 @@ struct PerfilView: View {
             if mostrarBotones {
                 botones
             }
-            cuadroSobreMi(heading: "Sobre mi", text: usuario.sobreMi)
+            AboutMeView(heading: "Sobre mi", text: usuario.aboutMe)
             atributos
             Spacer()
         }.onAppear {
@@ -52,10 +52,10 @@ struct PerfilView: View {
     }
 
     private func cargarDatos() {
-        if vm.usuarioSeleccionado != nil {
-            chatVM.usuarioSeleccionado = vm.usuarioSeleccionado
+        if vm.selectedUser != nil {
+            chatVM.selectedUser = vm.selectedUser
         }
-        chatVM.usuarioPrincipal = vm.usuarioPrincipal
+        chatVM.currentUser = vm.currentUser
     }
 
     var tabsFotos: some View {
@@ -95,12 +95,12 @@ struct PerfilView: View {
 
     var nombreEdad: some View {
         HStack {
-            Text(usuario.nombre)
+            Text(usuario.name)
                 .font(.title)
                 .fontWeight(.semibold)
-            Text("\(usuario.edad)")
+            Text("\(usuario.age)")
                 .font(.title2)
-            AtributoView(texto: usuario.genero)
+            AttributeView(text: usuario.gender)
         }
     }
 
@@ -108,15 +108,11 @@ struct PerfilView: View {
         HStack(spacing: 20.0) {
             // Boton like
             Button {
-                chatVM.enviarMensaje(texto: "*like*", fecha: Date.now)
+                chatVM.sendMessage(text: "*like*", date: Date.now)
                 abrirChat = true
                 presentationMode.dismiss()
             } label: {
-                Image(systemName: "heart.fill")
-                    .font(.title)
-                    .foregroundColor(Color.accentColor)
-                    .frame(width: 60, height: 60)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                IconButtonCustom(icon: "heart.fill", colorIcon: Color.accentColor)
             }
 
             // Boton chat
@@ -124,11 +120,7 @@ struct PerfilView: View {
                 abrirChat = true
                 presentationMode.dismiss()
             } label: {
-                Image(systemName: "message.fill")
-                    .font(.title)
-                    .foregroundColor(Color.gray)
-                    .frame(width: 60, height: 60)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                IconButtonCustom(icon: "message.fill", colorIcon: Color.gray)
             }
         }
         .padding(.bottom)
@@ -139,8 +131,8 @@ struct PerfilView: View {
     var coincide = false
     var atributos: some View {
         WrappingHStack(id: \.self, horizontalSpacing: 6) {
-            ForEach(usuario.atributos, id: \.self) { a in
-                AtributoView(texto: a, coincide: atributoCoincide(texto: a))
+            ForEach(usuario.attributes, id: \.self) { a in
+                AttributeView(text: a, matches: atributoCoincide(texto: a))
             }
         }
         .padding(.horizontal, 20)
@@ -150,7 +142,7 @@ struct PerfilView: View {
     private func atributoCoincide(texto: String) -> Bool {
         if !esSheet { return false }
 
-        for atributo in vm.usuarioPrincipal!.atributos {
+        for atributo in vm.currentUser!.attributes {
             if atributo == texto {
                 return true
             }

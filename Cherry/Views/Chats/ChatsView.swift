@@ -15,14 +15,14 @@ struct ChatsView: View {
         NavigationView {
             VStack {
                 List {
-                    ForEach(vm.recientes, id: \.self) { reciente in
+                    ForEach(vm.recentMessages, id: \.self) { reciente in
                         FilaChatView(reciente: reciente)
                             .contentShape(Rectangle()) // Para que se pueda pulsar sobre toda la fila
                             .onTapGesture {
                                 // Buscamos el usuario correspondiente a ese mensaje
-                                vm.usuarios.forEach { u in
-                                    if (reciente.emisorId != vm.usuarioPrincipal?.uid && u.uid == reciente.emisorId) || (u.uid == reciente.receptorId) {
-                                        vm.usuarioSeleccionado = u
+                                vm.users.forEach { u in
+                                    if (reciente.senderUID != vm.currentUser?.uid && u.uid == reciente.senderUID) || (u.uid == reciente.receiverUID) {
+                                        vm.selectedUser = u
                                         return
                                     }
                                 }
@@ -33,9 +33,7 @@ struct ChatsView: View {
                 .listStyle(PlainListStyle())
                 .padding(.bottom, 40) // Para que no lo tape la tabbar
                 .navigationTitle("Chats")
-                .onAppear {
-                    //vm.fetchRecientes()
-                }
+
 
                 // Abre el chat correspondiente
                 NavigationLink("", isActive: $abrirChat) {
@@ -43,7 +41,7 @@ struct ChatsView: View {
                 }
             }.onAppear {
                 withAnimation(.spring()) {
-                    vm.esconderBarra = false
+                    vm.hideTabBar = false
                 }
             }.navigationBarTitleDisplayMode(.inline)
         }

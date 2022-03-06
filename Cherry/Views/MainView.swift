@@ -20,7 +20,7 @@ struct MainView: View {
     }
 
     var body: some View {
-        if vm.usuarioLoggedIn {
+        if vm.signedIn {
             ZStack { // Acciones tabbar
                 switch vm.tabbarIndex {
                 case 0:
@@ -34,7 +34,7 @@ struct MainView: View {
                 }
 
                 // Tabbar
-                if !vm.esconderBarra {
+                if !vm.hideTabBar {
                     VStack {
                         Spacer()
                         TabViewPersonalizado()
@@ -44,7 +44,7 @@ struct MainView: View {
                 }
 
                 // Para que el las vista de filtros quede por encima de todo
-                if vm.abrirFiltro {
+                if vm.openFilters {
                     FiltroView()
                 }
                 
@@ -57,7 +57,7 @@ struct MainView: View {
             }
             .transition(AnyTransition.upSlide) // Cuando pasamos del login a la pantalla principal
             .onAppear { // Cuando cerramos y volvemos a iniciar sesion hace falta indicar que no hay que esconder la barra
-                vm.esconderBarra = false
+                vm.hideTabBar = false
                 
             }
         } else {
@@ -81,7 +81,7 @@ struct AvisoUbicacion: View {
                 
         }.padding()
             .background(.thinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
             .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
             .padding()
@@ -103,7 +103,7 @@ struct TabViewPersonalizado: View {
             ForEach(elementosTabbar, id: \.self) { elemento in
                 // Cada boton del tabbar
                 Button {
-                    withAnimation(.spring(response: SPRINGRESPONSE, dampingFraction: SPRINGDAMPING, blendDuration: 0)) {
+                    withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
                         vm.tabbarIndex = elemento.indice
                     }
                 } label: {
@@ -123,13 +123,13 @@ struct TabViewPersonalizado: View {
         }
         .padding(EdgeInsets(top: 15, leading: 0, bottom: 20, trailing: 0))
         .frame(width: UIScreen.screenWidth, height: UIScreen.screenHeight * 0.08)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: RADIUS, style: .continuous))
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS, style: .continuous))
         .background( // Circulo de color por detras
             Circle().fill(Color.accentColor).frame(width: 90)
                 .offset(x: vm.tabbarIndex == 0 ? -103 : (vm.tabbarIndex == 1 ? 5 : +108))
         )
         .overlay( // Barrita que aparece encima del icono
-            RoundedRectangle(cornerRadius: RADIUS)
+            RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS)
                 .fill(Color.accentColor)
                 .frame(width: 28, height: 5)
                 .frame(width: 90)
@@ -148,7 +148,7 @@ struct IconoTabbar: View {
         Image(systemName: nombreIcono)
             .resizable()
             .frame(width: 27, height: 25)
-            .foregroundColor(Color.primary.opacity(OPACITY))
+            .foregroundColor(Color.primary.opacity(ELEMENT_OPACITY))
     }
 }
 
@@ -158,7 +158,7 @@ struct TextoTabbar: View {
     var body: some View {
         Text(nombre)
             .font(.caption)
-            .foregroundColor(Color.primary.opacity(OPACITY))
+            .foregroundColor(Color.primary.opacity(ELEMENT_OPACITY))
     }
 }
 

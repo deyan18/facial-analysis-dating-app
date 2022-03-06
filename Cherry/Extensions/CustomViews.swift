@@ -5,71 +5,67 @@
 //  Created by Aula11 on 9/11/21.
 //
 
-import SwiftUI
-import SDWebImageSwiftUI
 import CoreLocation
+import SDWebImageSwiftUI
+import SwiftUI
 
-struct TextFieldPersonalizado: View{
+struct TextFieldCustom: View {
     var placeholder: String
-    @Binding var texto: String
-    var sinAutocorrector = true
-    var mayusculas = true
+    @Binding var text: String
+    var disableAutocorrection = true
+    var autocap = true
     var body: some View {
-        
-        TextField(placeholder, text: $texto)
-            .disableAutocorrection(sinAutocorrector)
-            .autocapitalization(mayusculas ? .words : .none)
+        TextField(placeholder, text: $text)
+            .disableAutocorrection(disableAutocorrection)
+            .autocapitalization(autocap ? .words : .none)
             .padding()
             .background(.regularMaterial)
-            .cornerRadius(RADIUS)
+            .cornerRadius(BUTTON_TFIELD_RADIUS)
     }
 }
 
-struct TextEditorPersonalizado: View{
+struct TextEditorCustom: View {
     @Binding var text: String
-    
+
     init(text: Binding<String>) {
-        self._text = text
+        _text = text
         UITextView.appearance().backgroundColor = .clear
     }
+
     var body: some View {
         ZStack {
             TextEditor(text: $text)
                 .font(.body)
-                .foregroundColor(.primary) // Text color
-                .background(.clear) // TextEditor's Background Color
+                .foregroundColor(.primary)
+                .background(.clear)
         }
         .frame(height: 130)
         .padding(5)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: RADIUS))
-        
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS))
     }
-    
 }
 
-struct SecureFieldPersonalizado: View{
+struct SecureFieldCustom: View {
     var placeholder: String
-    @Binding var texto: String
+    @Binding var text: String
     @State var isSecured: Bool = true
-    
-    
+
     var body: some View {
-        
         ZStack(alignment: .trailing) {
             if isSecured {
-                SecureField(placeholder, text: $texto)
+                SecureField(placeholder, text: $text)
                     .disableAutocorrection(true)
                     .autocapitalization(.none)
                     .padding()
                     .background(.regularMaterial)
-                    .cornerRadius(RADIUS)
+                    .cornerRadius(BUTTON_TFIELD_RADIUS)
             } else {
-                TextField(placeholder, text: $texto)
+                TextField(placeholder, text: $text)
                     .disableAutocorrection(true)
                     .autocapitalization(.none)
                     .padding()
                     .background(.regularMaterial)
-                    .cornerRadius(RADIUS)
+                    .cornerRadius(BUTTON_TFIELD_RADIUS)
             }
             Button(action: {
                 isSecured.toggle()
@@ -82,58 +78,38 @@ struct SecureFieldPersonalizado: View{
     }
 }
 
-
-struct BotonPersonalizado: View{
-    var texto: String
+struct ButtonCustom: View {
+    var text: String
     var color: Color
-    
+
     var body: some View {
-        
-        Text(texto)
+        Text(text)
             .foregroundColor(.white)
             .fontWeight(.bold)
             .padding()
             .frame(maxWidth: .infinity)
             .background(color)
-            .cornerRadius(RADIUS)
-        
+            .cornerRadius(BUTTON_TFIELD_RADIUS)
     }
 }
 
+struct IconButtonCustom: View {
+    var icon: String
+    var colorBG: Color = Color.secondarySystemBackground
+    var colorIcon: Color = .gray
 
-struct BotonSoloIconoPersonalizado: View{
-    var icono: String
-    var colorFondo: Color = GRAY
-    var colorIcono: Color = .gray
-    
     var body: some View {
-        
-        Image(systemName: icono)
+        Image(systemName: icon)
             .font(.title)
-            .foregroundColor(colorIcono)
+            .foregroundColor(colorIcon)
             .frame(width: 60, height: 60)
             .background(
-                RoundedRectangle(cornerRadius: RADIUS)
-                    .fill(colorFondo))
-        
+                RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS)
+                    .fill(colorBG))
     }
 }
 
-
-struct FotoCircular: View{
-    var foto: Image
-    var size: CGFloat
-    var body: some View {
-        foto
-            .resizable()
-            .scaledToFill()
-            .frame(width: size, height: size)
-            .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
-            
-    }
-}
-
-struct FotoMasRecomendado: View{
+struct BigImageCircular: View {
     var url: String
     var body: some View {
         WebImage(url: URL(string: url))
@@ -146,7 +122,7 @@ struct FotoMasRecomendado: View{
     }
 }
 
-struct WebFotoCircular: View{
+struct ImageCircular: View {
     var url: String
     var size: CGFloat
     var body: some View {
@@ -155,13 +131,12 @@ struct WebFotoCircular: View{
             .scaledToFill()
             .frame(width: size, height: size)
             .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
-            
     }
 }
 
-struct TextNombre: View{
+struct SemiBoldText: View {
     var texto: String
-    
+
     var body: some View {
         Text(texto)
             .semibold()
@@ -169,9 +144,9 @@ struct TextNombre: View{
     }
 }
 
-struct TextTitulo: View{
+struct TitleText: View {
     var texto: String
-    
+
     var body: some View {
         Text(texto)
             .font(.largeTitle)
@@ -180,49 +155,43 @@ struct TextTitulo: View{
     }
 }
 
-struct botonFotoView: View {
-    @State var mostrarImagePicker = false
-    @Binding var foto: UIImage
+struct UploadImageButton: View {
+    @State var showImagePicker = false
+    @Binding var image: UIImage
     var url = ""
-    
+
     var body: some View {
-    Button(){
-        mostrarImagePicker.toggle()
-    }label:{
-        if(url == ""){
-            Image(uiImage: foto)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 100, height: 100)
-                .background(Image(systemName: "camera.fill").foregroundColor(.primary))
-                .background(.regularMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: RADIUS))
-                .onAppear {
-                    print("FOTO: \(url)")
-                }
-        }else{
-            Image(uiImage: foto)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 100, height: 100)
-                .background(Image(systemName: "camera.fill").foregroundColor(.primary))
-                .background(WebImage(url: URL(string: url)).resizable()
-                                .scaledToFill().opacity(0.7))
-                .clipShape(RoundedRectangle(cornerRadius: RADIUS))
-                .onAppear {
-                    print("FOTO: \(url)")
-                }
+        Button {
+            showImagePicker.toggle()
+        } label: {
+            if url == "" {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 100, height: 100)
+                    .background(Image(systemName: "camera.fill").foregroundColor(.primary))
+                    .background(.regularMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS))
+
+            } else {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 100, height: 100)
+                    .background(Image(systemName: "camera.fill").foregroundColor(.primary))
+                    .background(WebImage(url: URL(string: url)).resizable()
+                        .scaledToFill().opacity(0.7))
+                    .clipShape(RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS))
+            }
         }
-        
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(sourceType: .photoLibrary, selectedImage: $image)
+        }
     }
-    .sheet(isPresented: $mostrarImagePicker){
-        ImagePicker(sourceType: .photoLibrary, selectedImage: $foto)
-    }
-}
 }
 
-struct FondoPersonalizado: View{
-    @State var centro = UnitPoint(x: 0, y: 0)
+struct CustomBG: View {
+    @State var center = UnitPoint(x: 0, y: 0)
     @State var x1 = 0.0
     @State var x2 = 0.0
     @State var x3 = 0.0
@@ -230,17 +199,16 @@ struct FondoPersonalizado: View{
     @State var y2 = 0.0
     @State var y3 = 0.0
     let timer = Timer.publish(every: 1, on: .main, in: .default).autoconnect()
-    let colors = [Color("FondoRosa"), Color("FondoAzul"), Color("FondoRosa"), Color("FondoAzul"), Color("FondoRosa"),]
-    
+    let colors = [Color("FondoRosa"), Color("FondoAzul"), Color("FondoRosa"), Color("FondoAzul"), Color("FondoRosa")]
+
     var body: some View {
-        ZStack{
-            AngularGradient(gradient: Gradient(colors: [Color("FondoAzul"), Color("FondoRosa"), Color("FondoAzul")]), center: centro)
-            
+        ZStack {
+            AngularGradient(gradient: Gradient(colors: [Color("FondoAzul"), Color("FondoRosa"), Color("FondoAzul")]), center: center)
 
             Circle().fill(Color("AccesorioAzul")).frame(width: 300, height: 300)
                 .offset(x: 140 + x1, y: 240 + y1)
                 .shadow(color: Color("AccesorioAzul"), radius: 20)
-                
+
             Circle().fill(Color("AccesorioRosa")).frame(width: 200, height: 200)
                 .offset(x: -140 + x2, y: -40 + y2)
                 .shadow(color: Color("AccesorioRosa"), radius: 20)
@@ -250,79 +218,73 @@ struct FondoPersonalizado: View{
         }.ignoresSafeArea()
             .onReceive(timer, perform: { _ in
                 withAnimation(.linear(duration: 6), {
-                    
-                    self.centro.x += CGFloat.random(in: -100...100)
-                    self.centro.y += CGFloat.random(in: -100...100)
-                    
-                    self.x1 =  CGFloat.random(in: -50...50)
-                    self.x2 =  CGFloat.random(in: -50...50)
-                    self.x3 =  CGFloat.random(in: -50...50)
-                    self.y1 =  CGFloat.random(in: -50...50)
-                    self.y2 =  CGFloat.random(in: -50...50)
-                    self.y3 =  CGFloat.random(in: -50...50)
+                    self.center.x += CGFloat.random(in: -100 ... 100)
+                    self.center.y += CGFloat.random(in: -100 ... 100)
+
+                    self.x1 = CGFloat.random(in: -50 ... 50)
+                    self.x2 = CGFloat.random(in: -50 ... 50)
+                    self.x3 = CGFloat.random(in: -50 ... 50)
+                    self.y1 = CGFloat.random(in: -50 ... 50)
+                    self.y2 = CGFloat.random(in: -50 ... 50)
+                    self.y3 = CGFloat.random(in: -50 ... 50)
                 })
-               
+
             })
     }
 }
 
-
-struct LogoLogin: View{
-    
+struct LogoSignIn: View {
     var body: some View {
-        Image( "Logo")
+        Image("Logo")
             .resizable()
             .aspectRatio(contentMode: .fill)
             .frame(width: 180, height: 180)
-            .opacity(OPACITY)
+            .opacity(ELEMENT_OPACITY)
             .shadow(color: .white.opacity(0.6), radius: 20)
     }
 }
 
-
-
-struct AtributoView: View {
-    var texto: String
-    var icono: String = ""
-    var coincide: Bool = false
+struct AttributeView: View {
+    var text: String
+    var icon: String = ""
+    var matches: Bool = false
     var body: some View {
-        if(coincide){
-            textoView
+        if matches {
+            textView
                 .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .shadow(color: .black.opacity(0.07), radius: 3, x: -3, y: -3)
                 .shadow(color: .black.opacity(0.07), radius: 3, x: 3, y: 3)
                 .padding(5)
-        }else{
-            textoView
+        } else {
+            textView
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .shadow(color: .black.opacity(0.07), radius: 3, x: -3, y: -3)
                 .shadow(color: .black.opacity(0.07), radius: 3, x: 3, y: 3)
                 .padding(5)
         }
-        
     }
-    
-    var textoView: some View{
-        HStack{
-            if(icono != ""){
-                Image(systemName: icono)
+
+    var textView: some View {
+        HStack {
+            if icon != "" {
+                Image(systemName: icon)
             }
-            Text(texto)
-                .foregroundColor(coincide ? .white : .primary)
+            Text(text)
+                .foregroundColor(matches ? .white : .primary)
         }
         .padding(10)
     }
 }
 
-struct SeccionTitulo: View{
+struct SectionTitle: View {
     var texto: String
-    
-    init(_ texto: String){
+
+    init(_ texto: String) {
         self.texto = texto
     }
-    
-    var body: some View{
-        HStack{
+
+    var body: some View {
+        HStack {
             Text(texto)
                 .fontWeight(.semibold)
             Spacer()
@@ -330,22 +292,21 @@ struct SeccionTitulo: View{
     }
 }
 
-struct SemiTitulo: View{
+struct SemiBoldTitle: View {
     var texto: String
-    
-    init(_ texto: String){
+
+    init(_ texto: String) {
         self.texto = texto
     }
-    
-    var body: some View{
+
+    var body: some View {
         Text(texto)
             .font(.title)
             .fontWeight(.semibold)
     }
-    
 }
 
-struct cuadroSobreMi: View {
+struct AboutMeView: View {
     var heading: String
     var text: String
 

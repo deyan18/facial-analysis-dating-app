@@ -11,332 +11,198 @@ import Firebase
 import SwiftUI
 
 class MainViewModel: ObservableObject {
-    @Published var DEBUG = false
+    // Users
+    @Published var currentUser: UserModel?
+    @Published var selectedUser: UserModel? = nil
+    @Published var users: [UserModel] = [] // All users from DB
+    @Published var usersWithinRange: [UserModel] = [] // Users within distnace, age and sex range
+    @Published var usersAnalyzed: [UserModel] = [] // Users analyzed with DeepFace
+
+    // Toggles
+    @Published var openFilters = false
+    @Published var signedIn = false
+    @Published var apiInUse = false
+    @Published var apiError = false
+    @Published var showLoadingView = false
+    @Published var showUserManualButton = true
+    @Published var hideTabBar = false
+    @Published var showDebug = false
+
+    // Listeners
+    private var usersListener: ListenerRegistration?
+    private var usersAnalyzedListener: ListenerRegistration?
+    private var recentMessagesListener: ListenerRegistration?
+
+    // Other
+    @Published var recentMessages: [RecentMessageModel] = []
+    @Published var attributes: [AttributeModel] = []
+    @Published var apiURL = "http://127.0.0.1:8000"
     @Published var tabbarIndex = 0
 
-    // Usuario
-    @Published var usuarioPrincipal: UsuarioModel? // Guardamos el usuario que ha iniciado sesión
-    @Published var usuarios: [UsuarioModel] = [] // Lista con todos los usuario de la bbdd
-    @Published var usuariosRango: [UsuarioModel] = [] // Lista con los usuarios dentro del rango de distancia, edad, sexo y ordenados por preferncia de similitud
-    @Published var usuariosCompatibles: [UsuarioModel] = []
-    // Toggles
-    @Published var abrirFiltro = false
-    @Published var usuarioLoggedIn = false // Para indicar que el login es correcto y pasar a vista Para Ti / Para cerrar sesion y volver a login
-    @Published var apiEnUso = false // Para controlar que no se hagan varias llamadas a la api simultanemente
-    @Published var loadingView = false
-    @Published var errorApi = false
-    // Limites
-    @Published var distanciaPermitida = 50000.0 // Rango de distancia (en metros) de usuarios que se van a mostrar
-    @Published var mostrarBotonInfo = true
-    @Published var urlapi = "http://127.0.0.1:8000"
     init() {
-        fetchAtributos()
+        fetchAttributes()
     }
 
-    // Bajar los datos del usuario que ha iniciado sesion de la BD
-    func fetchUsuarioActual() {
+    func fetchCurrentUser() {
         guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
 
         FirebaseManager.shared.firestore.collection("usuarios")
             .document(uid).getDocument { snapshot, err in
                 if let err = err {
-                    print("Error fetch usuario actual:", err)
+                    print("Error: ", err)
                     return
                 }
 
                 guard let data = snapshot?.data() else { return }
+                self.currentUser = .init(data: data)
 
-                self.usuarioPrincipal = .init(data: data)
-
-                // Una vez cargado el usuario llamamos
-                self.cargarDatosUsuario()
-
-                if DEBUGCONSOLE {
-                    print(data)
-                    print(self.usuarioPrincipal!)
-                }
+                self.fetchUserDependantData()
             }
     }
 
-    private func cargarDatosUsuario() {
-        fetchUsuarios()
-        fetchUsuariosCompatibles()
-        fetchRecientes()
+    // Data that needs the user to be loaded first
+    private func fetchUserDependantData() {
+        fetchUsers()
+        fetchUsersAnalyzed()
+        fetchRecentMessages()
     }
 
-    func cerrarSesion() {
-        usuarioLoggedIn = false
+    func signOut() {
+        signedIn = false
         try? FirebaseManager.shared.auth.signOut()
     }
 
-    private var usuariosListener: ListenerRegistration?
-    // Bajar todos los usuarios de la BD
-    func fetchUsuarios() {
-        usuariosListener?.remove()
-        usuariosListener = FirebaseManager.shared.firestore.collection("usuarios").addSnapshotListener { querySnapshot, err in
+    private func fetchUsers() {
+        usersListener?.remove()
+        usersListener = FirebaseManager.shared.firestore.collection("usuarios").addSnapshotListener { querySnapshot, err in
             if let err = err {
-                print("Error obteniendo usuarios: \(err)")
+                print("Error: ", err)
                 return
             }
-            self.usuarios.removeAll() // Eliminamos los del fetch anterior
+
+            self.users.removeAll() // To prevent duplicates
 
             querySnapshot?.documents.forEach({ snap in
-                let u = UsuarioModel(data: snap.data())
-                // Si el usuario NO es el que ha iniciado sesión lo introducimos en usuarios[]
-                if u.uid != FirebaseManager.shared.auth.currentUser?.uid {
-                    self.usuarios.append(u)
+                let u = UserModel(data: snap.data())
+                if u.uid != self.currentUser?.uid {
+                    self.users.append(u)
                 }
 
             })
-            if DEBUGCONSOLE {
-                print(self.usuarios)
-            }
-
-            // self.calcularCompatibles()
-            // Una vez tengamos todos los usuarios pasamos a ver cuales cumplen los criterios
-            // self.calcularRasgos()
         }
     }
 
-    private var compatiblesListener: ListenerRegistration?
+    private func fetchUsersAnalyzed() {
+        guard let currentUserUID = currentUser?.uid else { return }
+        usersAnalyzedListener?.remove()
 
-    func fetchUsuariosCompatibles() {
-        guard let uidPrincipal = usuarioPrincipal?.uid else { return }
-        compatiblesListener?.remove()
-
-        compatiblesListener = FirebaseManager.shared.firestore
+        usersAnalyzedListener = FirebaseManager.shared.firestore
             .collection("compatibles")
-            .document(uidPrincipal)
+            .document(currentUserUID)
             .collection("usuarios")
             .addSnapshotListener { querySnapshot, err in
                 if let err = err {
-                    print("Error obteniendo comparaciones \(err)")
+                    print("Error: ", err)
                     return
                 }
 
-                print("FUERA")
-                self.usuariosCompatibles.removeAll() // Eliminamos los del fetch anterior
+                self.usersAnalyzed.removeAll() // To prevent duplicates
+
                 querySnapshot?.documents.forEach({ queryDoc in
                     let data = queryDoc.data()
 
-                    print("DENTRO \(self.usuarios.count)")
-
-                    for (index, u) in self.usuarios.enumerated() {
-                        print("COMPROBANDO:")
-                        print("data[uid]: \(data["uid"] as! String)")
-                        print("u.uid: \(u.uid)")
-
-                        if data["uid"] as! String == u.uid {
-                            self.usuarios[index].distanciaRasgos = data["distanciaRasgos"] as? Double ?? -1.0
-                            self.usuariosCompatibles.append(self.usuarios[index])
-                            print("AÑADIDO: \(self.usuarios[index].nombre)")
+                    for (index, user) in self.users.enumerated() {
+                        if data["uid"] as! String == user.uid {
+                            self.users[index].distanceFeatures = data["distanciaRasgos"] as? Double ?? -1.0
+                            self.usersAnalyzed.append(self.users[index])
+                            if SHOW_DEBUG_CONSOLE {
+                                print("Added to usersAnalyzed: \(self.users[index].name)")
+                            }
                         }
                     }
 
                 })
 
-                DispatchQueue.main.async {
-                    // Odenamos la lista ya sea por similitud o diferencia
-                    if self.usuarioPrincipal?.buscaSimilar ?? true {
-                        self.usuariosCompatibles = self.usuariosCompatibles.sorted(by: { $0.distanciaRasgos < $1.distanciaRasgos })
-                    } else {
-                        self.usuariosCompatibles = self.usuariosCompatibles.sorted(by: { $0.distanciaRasgos > $1.distanciaRasgos })
-                    }
-                }
+                self.sortUsers()
             }
     }
 
-    // Coge los usuarios dentro del radio permitido y los pasa por la api con DeepFace
-    func calcularCompatibles() {
-        calcularRangoDistancia()
-        enviarParaComparar()
+    private func sortUsers() {
+        DispatchQueue.main.async {
+            if self.currentUser?.lookingForSimilar ?? true {
+                self.usersAnalyzed = self.usersAnalyzed.sorted(by: { $0.distanceFeatures < $1.distanceFeatures })
+            } else {
+                self.usersAnalyzed = self.usersAnalyzed.sorted(by: { $0.distanceFeatures > $1.distanceFeatures })
+            }
+        }
     }
 
-    /*
-     //Comprueba rangos de edad, distancia, genero y ordena por similitud o diferencia
-     func calcularRecomendaciones() {
-         usuariosRango.removeAll() //Vaciamos de la llamada anterior
+    // Takes users within established ranges and sends it to the API to be analyzed with DeepFace
+    func analyzeUsers() {
+        getUsersWithinRange()
+        sendToAPI()
+    }
 
-         //Ponemos valores por defecto si nos encontramos algun nil
-         let min = usuarioPrincipal?.edadMin ?? 18
-         let max = usuarioPrincipal?.edadMax ?? 99
-         let genero = usuarioPrincipal?.genero ?? ""
-         let generosBuscaPrincipal = usuarioPrincipal?.busco ?? []
+    private func getUsersWithinRange() {
+        usersWithinRange.removeAll()
 
-         for (index, usuario) in usuarios.enumerated() {
-             // Calculamos la distancia del usuario al usuario principal
-             usuarios[index].distanciaMetros = usuario.ubicacion.distance(from: usuarioPrincipal?.ubicacion ?? CLLocation(latitude: 0.0, longitude: 0.0))
+        let gender = currentUser?.gender ?? ""
+        let lookingFor = currentUser?.lookingFor ?? []
+        let ageMin = currentUser?.ageMin ?? 18
+        let ageMax = currentUser?.ageMax ?? 99
+        let currentUserLocation = currentUser?.location ?? CLLocation(latitude: 0.0, longitude: 0.0)
 
-             if(DEBUGCONSOLE){
-                 print("Distancia usuario: \(usuarios[index].distanciaMetros), perimitida: \(distanciaPermitida)")
-             }
+        for (index, user) in users.enumerated() {
+            users[index].distanceMetres = user.location.distance(from: currentUserLocation)
 
-             // Comprobamos si los generos que buscan corresponden
-             if generosBuscaPrincipal.contains(usuario.genero) && usuario.busco.contains(genero) {
-                 // Comprobamos si la distancia permitida se cumple
-                 if usuarios[index].distanciaMetros <= distanciaPermitida && usuarios[index].edad >= min && usuarios[index].edad <= max {
-                     usuariosRango.append(usuarios[index])
-                 }
-             }
-         }
-
-         DispatchQueue.main.async {
-             //Odenamos la lista ya sea por similitud o diferencia
-             if self.usuarioPrincipal?.buscaSimilar ?? true {
-                 self.usuariosRango = self.usuariosRango.sorted(by: { $0.distanciaRasgos < $1.distanciaRasgos })
-             } else {
-                 self.usuariosRango = self.usuariosRango.sorted(by: { $0.distanciaRasgos > $1.distanciaRasgos })
-             }
-         }
-     }
-      */
-    /*
-     //Llama a la api con DeepFace para obtener las diferencias en los rasgos
-     func similitudFotos() {
-         usuariosSimilitud = SimilitudModel() //Vaciamos de la llamada anterior
-
-         //Rellenamos con los datos
-         usuariosSimilitud.urlPrincipal = usuarioPrincipal!.urlV
-         usuarios.forEach { usuario in
-             usuariosSimilitud.urls.append(usuario.urlV)
-             usuariosSimilitud.uids.append(usuario.uid)
-             usuariosSimilitud.distanciasRasgos.append(-1.0) //Distancia por defecto
-         }
-
-         if apiEnUso { //Si ya hay una llamada a la api cancelamos
-             return
-         } else {
-             apiEnUso = true
-
-             if(DEBUGCONSOLE){
-                 print("LLAMADA A API INICIADA")
-             }
-
-             let json = ["urlPrincipal": usuariosSimilitud.urlPrincipal, "urls": usuariosSimilitud.urls, "uids": usuariosSimilitud.uids, "distanciasRasgos": usuariosSimilitud.distanciasRasgos] as [String: Any]
-             do {
-                 let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
-
-                 let url = NSURL(string: "\(URLAPI)/similitudFotos/")!
-                 let request = NSMutableURLRequest(url: url as URL)
-                 request.httpMethod = "POST"
-
-                 request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
-                 request.httpBody = jsonData
-
-                 let task = URLSession.shared.dataTask(with: request as URLRequest) { data, _, error in
-                     if error != nil {
-                         print("Error -> \(error)")
-                         DispatchQueue.main.async {
-                             self.apiEnUso = false
-                             self.errorApi = true
-                         }
-                         return
-                     }
-                     do {
-                         let decoder = JSONDecoder()
-                         let result = try decoder.decode(SimilitudModel.self, from: data!)
-                         print("Result -> \(result)")
-
-                         //Una vez tengamos el resultado pasamos a rellenar los datos
-                         self.actualizarSimilitud(result)
-                     } catch {
-                         print("Error -> \(error)")
-                     }
-                 }
-
-                 task.resume()
-
-             } catch {
-                 print(error)
-             }
-         }
-     }
-     */
-    /*
-     //Insertamos las distancias de rasgos obtenidas en los usuarios correspondientes
-     func actualizarSimilitud(_ usuariosSimilitud: SimilitudModel) {
-         DispatchQueue.main.async {
-             self.apiEnUso = false
-             for (indexUsuario, usuario) in self.usuarios.enumerated() {
-                 for (indexSimilitud, uid) in usuariosSimilitud.uids.enumerated() {
-                     if usuario.uid == uid {
-                         /* El plan era que si se encontraba con un -1 volviese a llamar la api pero si hay una foto que no vale eso hace que entre en un bucle para siempre
-                         if usuariosSimilitud.distanciasRasgos[indexSimilitud] == -1.0 {
-                             self.similitudFotos()
-                             return
-                         }*/
-                         self.usuarios[indexUsuario].distanciaRasgos = usuariosSimilitud.distanciasRasgos[indexSimilitud]
-                     }
-                 }
-             }
-
-             //Una vez puestas todas las distancias volvemos a llamar para ordenar por ellas
-             self.calcularRecomendaciones()
-         }
-     }
-     */
-    func calcularRangoDistancia() {
-        usuariosRango.removeAll() // Vaciamos de la llamada anterior
-        let genero = usuarioPrincipal?.genero ?? ""
-        let generosBuscaPrincipal = usuarioPrincipal?.busco ?? []
-        let min = usuarioPrincipal?.edadMin ?? 18
-        let max = usuarioPrincipal?.edadMax ?? 99
-
-        for (index, usuario) in usuarios.enumerated() {
-            // Calculamos la distancia del usuario al usuario principal
-            usuarios[index].distanciaMetros = usuario.ubicacion.distance(from: usuarioPrincipal?.ubicacion ?? CLLocation(latitude: 0.0, longitude: 0.0))
-
-            if DEBUGCONSOLE {
-                print("Distancia usuario: \(usuarios[index].distanciaMetros), perimitida: \(distanciaPermitida)")
+            if SHOW_DEBUG_CONSOLE {
+                print("Distance: \(users[index].distanceMetres), allowed distance: \(DISTANCE_LIMIT)")
             }
 
-            // Comprobamos si los generos que buscan corresponden
-            if generosBuscaPrincipal.contains(usuario.genero) && usuario.busco.contains(genero) {
-                // Comprobamos si la distancia permitida se cumple
-                if usuarios[index].distanciaMetros <= distanciaPermitida && usuarios[index].edad >= min && usuarios[index].edad <= max {
-                    usuariosRango.append(usuarios[index])
+            if lookingFor.contains(user.gender) && user.lookingFor.contains(gender) {
+                if users[index].distanceMetres <= DISTANCE_LIMIT && users[index].age >= ageMin && users[index].age <= ageMax {
+                    usersWithinRange.append(users[index])
                 }
             }
         }
     }
 
-    func enviarParaComparar() {
-        guard let uidPrincipal = usuarioPrincipal?.uid else {
-            print("ME HE AGOBIADO UIDPRINCIPAL")
+    private func sendToAPI() {
+        guard let currentUserUID = currentUser?.uid else {
             return
         }
-        guard let urlPrincipal = usuarioPrincipal?.urlV else {
-            print("ME HE AGOBIADO URLPRINCIPAL")
+        guard let currentUserURL = currentUser?.urlV else {
+            return
+        }
 
-            return
-        }
+        // For JSON file
         var urls: [String] = []
         var uids: [String] = []
-        var distanciasRasgos: [Double] = []
-        usuariosRango.forEach { usuario in
-            print("mando a: \(usuario.nombre)")
+        var distanceFeatures: [Double] = []
+
+        usersWithinRange.forEach { usuario in
+            if SHOW_DEBUG_CONSOLE {
+                print("Sending: \(usuario.name)")
+            }
             urls.append(usuario.urlV)
             uids.append(usuario.uid)
-            distanciasRasgos.append(-1.0) // Distancia por defecto
+            distanceFeatures.append(-1.0)
         }
 
-        print("usuariosRango: \(usuariosRango.count)")
-        print("usuarios: \(usuarios.count)")
-
-        if apiEnUso { // Si ya hay una llamada a la api cancelamos
+        if apiInUse {
             return
         } else {
-            apiEnUso = true
+            apiInUse = true
 
-            if DEBUGCONSOLE {
-                print("LLAMADA A API INICIADA")
+            if SHOW_DEBUG_CONSOLE {
+                print("API CALL")
             }
 
-            let json = ["uidPrincipal": uidPrincipal, "urlPrincipal": urlPrincipal, "urls": urls, "uids": uids, "distanciasRasgos": distanciasRasgos] as [String: Any]
+            let json = ["uidPrincipal": currentUserUID, "urlPrincipal": currentUserURL, "urls": urls, "uids": uids, "distanciasRasgos": distanceFeatures] as [String: Any]
             do {
                 let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
 
-                let url = NSURL(string: "\(urlapi)/similitudFotos/")!
+                let url = NSURL(string: "\(apiURL)/similitudFotos/")!
                 let request = NSMutableURLRequest(url: url as URL)
                 request.httpMethod = "POST"
 
@@ -345,15 +211,15 @@ class MainViewModel: ObservableObject {
 
                 let task = URLSession.shared.dataTask(with: request as URLRequest) { _, _, error in
                     if error != nil {
-                        print("Error -> \(error)")
+                        print("Error: ", error ?? "")
                         DispatchQueue.main.async {
-                            self.apiEnUso = false
-                            self.errorApi = true
+                            self.apiInUse = false
+                            self.apiError = true
                         }
                         return
                     }
                     DispatchQueue.main.async {
-                        self.apiEnUso = false
+                        self.apiInUse = false
                     }
                 }
 
@@ -361,122 +227,111 @@ class MainViewModel: ObservableObject {
 
             } catch {
                 DispatchQueue.main.async {
-                    self.apiEnUso = false
-                    self.errorApi = true
+                    self.apiInUse = false
+                    self.apiError = true
                 }
                 print(error)
             }
         }
     }
 
-    @Published var recientes: [RecienteModel] = []
-    private var recientesListener: ListenerRegistration?
-    // Bajar los mensajes recientes de la bbdd
-    func fetchRecientes() {
+    private func fetchRecentMessages() {
         guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
-        recientesListener?.remove()
-        recientes.removeAll()
+        recentMessagesListener?.remove()
+        recentMessages.removeAll()
 
-        recientesListener = FirebaseManager.shared.firestore
+        recentMessagesListener = FirebaseManager.shared.firestore
             .collection("recientes")
             .document(uid)
             .collection("mensajes")
             .order(by: "fecha", descending: true)
             .addSnapshotListener { querySnapshot, err in
                 if let err = err {
-                    print("Error obteniendo mensajes recientes: \(err)")
+                    print("Error: ", err)
                     return
                 }
 
                 querySnapshot?.documentChanges.forEach({ cambio in
-                    let nuevo = RecienteModel(data: cambio.document.data())
-                    var encontrado = false
-                    for (indexReciente, reciente) in self.recientes.enumerated() {
-                        if reciente.urlFoto == nuevo.urlFoto {
-                            encontrado = true
-                            self.recientes[indexReciente] = nuevo
+
+                    let newRecentMessage = RecentMessageModel(data: cambio.document.data())
+                    var alreadyIn = false
+                    for (indexReciente, recentMessage) in self.recentMessages.enumerated() {
+                        if recentMessage.url == newRecentMessage.url {
+                            alreadyIn = true
+                            self.recentMessages[indexReciente] = newRecentMessage
                         }
                     }
-                    if !encontrado {
-                        self.recientes.append(nuevo)
+                    if !alreadyIn {
+                        self.recentMessages.append(newRecentMessage)
                     }
                 })
 
-                self.recientes = self.recientes.sorted(by: { $0.fecha > $1.fecha })
+                self.recentMessages = self.recentMessages.sorted(by: { $0.date > $1.date })
             }
     }
 
-    // Universal
-    @Published var usuarioSeleccionado: UsuarioModel? = nil
-    @Published var esconderBarra = false
-
-    @Published var atributos: [AtributoModel] = []
-
-    func fetchAtributos() {
-        atributos.removeAll()
+    private func fetchAttributes() {
+        attributes.removeAll()
         FirebaseManager.shared.firestore.collection("atributos").document("atributos").getDocument { snapshot, err in
             if let err = err {
-                print("Error obteniendo atributos: \(err)")
+                print("Error: \(err)")
                 return
             }
 
-            print("Atributos obtenidos correctamente")
-
             guard let data = snapshot?.data() else { return }
 
-            print(data)
+            let attributesStrings = data["arrayAtributos"] as! [String]
 
-            let arrayStrings = data["arrayAtributos"] as! [String]
-
-            arrayStrings.forEach { a in
-                self.atributos.append(AtributoModel(texto: a))
+            attributesStrings.forEach { a in
+                self.attributes.append(AttributeModel(text: a))
             }
         }
     }
 
-    func eliminarUsuarioActual() {
+    func deleteUserAccount() {
         guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
-        let refFotos = [FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto1"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto2"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto3"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoV"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoTemp")]
 
-        refFotos.forEach { ref in
+        let refImages = [FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto1"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto2"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto3"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoV"), FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoTemp")]
+
+        refImages.forEach { ref in
             ref.delete { err in
                 if let err = err {
-                    print("Error eliminando foto: \(err)")
+                    print("Error: \(err)")
                 }
             }
         }
 
         FirebaseManager.shared.auth.currentUser?.delete(completion: { err in
             if let err = err {
-                print("Error eliminando cuenta: \(err)")
+                print("Error: \(err)")
             }
 
             FirebaseManager.shared.firestore.collection("usuarios")
                 .document(uid).delete { err in
                     if let err = err {
-                        print("Error eliminando cuenta: \(err)")
+                        print("Error: \(err)")
                     }
-                    self.usuarioLoggedIn.toggle()
+                    self.signedIn.toggle()
                 }
         })
     }
 
-    func actualizarUbicacion(ubicacion: CLLocation) {
-        guard let uid = usuarioPrincipal?.uid else { return }
-        let data = ["ubicacion": GeoPoint(latitude: ubicacion.coordinate.latitude, longitude: ubicacion.coordinate.longitude)]
+    func updateLocation(location: CLLocation) {
+        guard let uid = currentUser?.uid else { return }
+        let data = ["ubicacion": GeoPoint(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)]
         FirebaseManager.shared.firestore.collection("usuarios").document(uid).updateData(data)
-        usuarioPrincipal?.ubicacion = ubicacion
+        currentUser?.location = location
     }
 
-    func actualizarLimitesEdad() {
-        guard let uid = usuarioPrincipal?.uid else { return }
-        let data = ["edadMin": usuarioPrincipal?.edadMin, "edadMax": usuarioPrincipal?.edadMax]
+    func updateAgeRange() {
+        guard let uid = currentUser?.uid else { return }
+        let data = ["edadMin": currentUser?.ageMin, "edadMax": currentUser?.ageMax]
         FirebaseManager.shared.firestore.collection("usuarios").document(uid).updateData(data as [String: Any])
     }
 
-    func actualizarRasgosBusca() {
-        guard let uid = usuarioPrincipal?.uid else { return }
-        let data = ["buscaSimilar": usuarioPrincipal?.buscaSimilar]
+    func updateFeaturesPreference() {
+        guard let uid = currentUser?.uid else { return }
+        let data = ["buscaSimilar": currentUser?.lookingForSimilar]
         FirebaseManager.shared.firestore.collection("usuarios").document(uid).updateData(data as [String: Any])
     }
 }

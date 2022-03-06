@@ -31,14 +31,14 @@ struct RegistrarseView: View {
                     // Header
                     botonAtras
                     Spacer()
-                    LogoLogin()
-                    TextTitulo(texto: "Registrarse")
+                    LogoSignIn()
+                    TitleText(texto: "Registrarse")
                         .padding(.bottom, 20)
 
                     // Campos de texto
-                    TextFieldPersonalizado(placeholder: "Correo Electrónico", texto: $correo, sinAutocorrector: true, mayusculas: false)
-                    SecureFieldPersonalizado(placeholder: "Contraseña", texto: $contrasenia)
-                    SecureFieldPersonalizado(placeholder: "Confirmar Contraseña", texto: $confirmar)
+                    TextFieldCustom(placeholder: "Correo Electrónico", text: $correo, disableAutocorrection: true, autocap: false)
+                    SecureFieldCustom(placeholder: "Contraseña", text: $contrasenia)
+                    SecureFieldCustom(placeholder: "Confirmar Contraseña", text: $confirmar)
                     Spacer()
 
                     botonRegistrarse
@@ -47,7 +47,7 @@ struct RegistrarseView: View {
             }
             .frame(width: UIScreen.screenWidth * 0.8, height: UIScreen.screenHeight * 0.7)
             .background(.ultraThinMaterial)
-            .mask(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
+            .mask(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
             .onTapGesture {
                 hideKeyboard()
             }
@@ -61,14 +61,14 @@ struct RegistrarseView: View {
         HStack {
             Button {
                 hideKeyboard()
-                withAnimation(.spring(response: SPRINGRESPONSE, dampingFraction: SPRINGDAMPING, blendDuration: 0)) {
+                withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
                     mostrarRegistrar = false
                 }
             } label: {
                 Image(systemName: "arrow.backward")
                     .resizable()
                     .frame(width: 20, height: 20)
-                    .foregroundColor(Color.primary.opacity(OPACITY))
+                    .foregroundColor(Color.primary.opacity(ELEMENT_OPACITY))
                     .padding(.top, 20)
                     .padding(.leading, 10)
             }
@@ -84,7 +84,7 @@ struct RegistrarseView: View {
                 registrarUsuario()
             }
         } label: {
-            BotonPersonalizado(texto: "Registrarse", color: Color.accentColor)
+            ButtonCustom(text: "Registrarse", color: Color.accentColor)
                 .padding(.top, 20)
                 
         }
@@ -106,25 +106,25 @@ struct RegistrarseView: View {
         FirebaseManager.shared.auth.createUser(withEmail: correo, password: contrasenia) { result, err in
             if let err = err {
                 alertProblemaRegistro = true
-                if DEBUGCONSOLE {
+                if SHOW_DEBUG_CONSOLE {
                     print("Error Registro: ", err)
                 }
                 return
             }
-            if DEBUGCONSOLE {
+            if SHOW_DEBUG_CONSOLE {
                 print("Registrado Correcto: \(result?.user.uid ?? "")")
             }
 
             // Hacemos login
             FirebaseManager.shared.auth.signIn(withEmail: correo, password: contrasenia) { _, err in
                 if let err = err {
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Error Login: ", err)
                     }
                     return
                 }
 
-                withAnimation(.spring(response: SPRINGRESPONSE, dampingFraction: SPRINGDAMPING, blendDuration: 0)) {
+                withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
                     mostrarCrearPerfil.toggle()
                 }
             }

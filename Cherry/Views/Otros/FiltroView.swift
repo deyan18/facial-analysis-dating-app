@@ -24,7 +24,7 @@ struct FiltroView: View {
         VStack {
             ZStack {
                 botonCerrar
-                SemiTitulo("Filtros")
+                SemiBoldTitle("Filtros")
             }
 
             Divider()
@@ -34,7 +34,7 @@ struct FiltroView: View {
             botonGuardar
         }.padding()
             .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
             .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
             .padding()
@@ -45,36 +45,36 @@ struct FiltroView: View {
 
     
     private func cargarDatos(){
-        if vm.usuarioPrincipal?.buscaSimilar ?? true {
+        if vm.currentUser?.lookingForSimilar ?? true {
             rasgos = "Similares"
         } else {
             rasgos = "Diferentes"
         }
-        min = vm.usuarioPrincipal?.edadMin ?? 18
-        max = vm.usuarioPrincipal?.edadMax ?? 99
+        min = vm.currentUser?.ageMin ?? 18
+        max = vm.currentUser?.ageMax ?? 99
     }
     
     private func guardar(){
         if rasgos == "Similares" {
-            vm.usuarioPrincipal?.buscaSimilar = true
+            vm.currentUser?.lookingForSimilar = true
         } else {
-            vm.usuarioPrincipal?.buscaSimilar = false
+            vm.currentUser?.lookingForSimilar = false
         }
-        vm.usuarioPrincipal?.edadMin = min
-        vm.usuarioPrincipal?.edadMax = max
-        vm.actualizarLimitesEdad()
-        vm.actualizarRasgosBusca()
-        vm.calcularCompatibles()
+        vm.currentUser?.ageMin = min
+        vm.currentUser?.ageMax = max
+        vm.updateAgeRange()
+        vm.updateFeaturesPreference()
+        vm.analyzeUsers()
     }
     
     var botonGuardar: some View{
         Button {
             guardar()
             withAnimation {
-                vm.abrirFiltro = false
+                vm.openFilters = false
             }
         } label: {
-            BotonPersonalizado(texto: "Guardar", color: .accentColor)
+            ButtonCustom(text: "Guardar", color: .accentColor)
         }
     }
 
@@ -84,7 +84,7 @@ struct FiltroView: View {
             Spacer()
             Button {
                 withAnimation {
-                    vm.abrirFiltro = false
+                    vm.openFilters = false
                 }
             } label: {
                 Image(systemName: "xmark")

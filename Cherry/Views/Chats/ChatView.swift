@@ -29,7 +29,7 @@ struct ChatView: View {
                         Spacer()
                             .frame(height: 60)
                             .id("bottom")
-                            .onReceive(chatVM.$mensajes) { _ in
+                            .onReceive(chatVM.$messages) { _ in
                                     DispatchQueue.main.async {
                                         withAnimation(.easeOut(duration: 0.5)) {
                                         scrollReader.scrollTo("bottom", anchor: .bottom)
@@ -57,7 +57,7 @@ struct ChatView: View {
             
         }
 
-        .navigationTitle(vm.usuarioSeleccionado?.nombre ?? "")
+        .navigationTitle(vm.selectedUser?.name ?? "")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarItems(
             trailing:
@@ -69,12 +69,12 @@ struct ChatView: View {
     }
 
     private func comienzo() {
-        chatVM.usuarioSeleccionado = vm.usuarioSeleccionado!
-        chatVM.usuarioPrincipal = vm.usuarioPrincipal
-        chatVM.fetchMensajes()
-        chatVM.marcarComoLeido()
+        chatVM.selectedUser = vm.selectedUser!
+        chatVM.currentUser = vm.currentUser
+        chatVM.fetchMessages()
+        chatVM.markAsRead()
         //withAnimation(.spring()) {
-            vm.esconderBarra = true
+            vm.hideTabBar = true
         //}
     }
 
@@ -103,34 +103,34 @@ struct ChatView: View {
     }
 
     func enviarMensaje() {
-        chatVM.enviarMensaje(texto: texto, fecha: Date.now)
+        chatVM.sendMessage(text: texto, date: Date.now)
         texto = ""
     }
 
     // Burbujas de mensajes
     func getMessagesView(viewWidth: CGFloat) -> some View {
         VStack(spacing: 1) {
-            ForEach(chatVM.mensajes.indices, id: \.self) { index in
-                let mensaje = chatVM.mensajes[index]
-                let esRecibido = mensaje.emisorId == vm.usuarioSeleccionado?.uid // Comprobamos si hemos recibido o enviado el mensaje
+            ForEach(chatVM.messages.indices, id: \.self) { index in
+                let mensaje = chatVM.messages[index]
+                let esRecibido = mensaje.senderUID == vm.selectedUser?.uid // Comprobamos si hemos recibido o enviado el mensaje
 
                 if index == 0 { // Si es el primer mensaje siempre mostramos la fecha antes
-                    SeparadorFecha(fecha: mensaje.fecha, esComienzo: true)
+                    SeparadorFecha(fecha: mensaje.date, esComienzo: true)
 
                 } else { // Comprobamos si hay una diferencia de un día entre este mensaje y el anterior
-                    let mensajeAnterior = chatVM.mensajes[index - 1]
+                    let mensajeAnterior = chatVM.messages[index - 1]
 
-                    if mensajeAnterior.fecha.diferenciaDias(fecha: mensaje.fecha) >= 1 {
-                        SeparadorFecha(fecha: mensaje.fecha)
+                    if mensajeAnterior.date.daysBetween(date: mensaje.date) >= 1 {
+                        SeparadorFecha(fecha: mensaje.date)
                     }
                 }
 
                 // Comprobamos si el mensaje es un like
-                if mensaje.texto == "*like*" {
-                    if mensaje.emisorId == vm.usuarioSeleccionado!.uid {
-                        mensajeLike(esRecibido: true, nombre: vm.usuarioSeleccionado?.nombre ?? "")
+                if mensaje.text == "*like*" {
+                    if mensaje.senderUID == vm.selectedUser!.uid {
+                        mensajeLike(esRecibido: true, nombre: vm.selectedUser?.name ?? "")
                     } else {
-                        mensajeLike(esRecibido: false, nombre: vm.usuarioSeleccionado?.nombre ?? "")
+                        mensajeLike(esRecibido: false, nombre: vm.selectedUser?.name ?? "")
                     }
 
                 } else {
@@ -202,7 +202,7 @@ struct SeparadorFecha: View {
             if !esComienzo {
                 Divider().padding(.top)
             }
-            Text(fecha.fechaString())
+            Text(fecha.dateString())
                 .font(.caption)
                 .padding(8)
                 .foregroundColor(.gray)
@@ -212,7 +212,7 @@ struct SeparadorFecha: View {
 
 struct BurbujaMensaje: View {
     var esRecibido: Bool
-    var mensaje: MensajeModel
+    var mensaje: MessageModel
     var viewWidth: CGFloat
     var calendar = Calendar.current
     var colorTexto = Color.white
@@ -222,11 +222,11 @@ struct BurbujaMensaje: View {
             ZStack {
                 HStack {
                     if !esRecibido { // Para colocar fecha en la parte izquierda
-                        Text("\(Calendar.current.dateComponents([.hour], from: mensaje.fecha).hour!):\(Calendar.current.dateComponents([.minute], from: mensaje.fecha).minute!)")
+                        Text("\(Calendar.current.dateComponents([.hour], from: mensaje.date).hour!):\(Calendar.current.dateComponents([.minute], from: mensaje.date).minute!)")
                             .font(.caption).foregroundColor(.gray)
                             .padding(.leading, 0)
                     }
-                    Text(mensaje.texto)
+                    Text(mensaje.text)
                         .foregroundColor(colorTexto)
                         .padding(.horizontal)
                         .padding(.top, 12)
@@ -234,7 +234,7 @@ struct BurbujaMensaje: View {
                         .background(esRecibido ? Color.gray : Color.accentColor)
                         .cornerRadius(25)
                     if esRecibido { // Para colocar fecha en la parte derecha
-                        Text("\(Calendar.current.dateComponents([.hour], from: mensaje.fecha).hour!):\(Calendar.current.dateComponents([.minute], from: mensaje.fecha).minute!)")
+                        Text("\(Calendar.current.dateComponents([.hour], from: mensaje.date).hour!):\(Calendar.current.dateComponents([.minute], from: mensaje.date).minute!)")
                             .font(.caption).foregroundColor(.gray)
                             .padding(.leading, 0)
                     }
@@ -254,13 +254,13 @@ struct NavBarPerfil: View {
     @State var noSeUtiliza = false
     var body: some View {
         HStack {
-            WebFotoCircular(url: vm.usuarioSeleccionado?.url1 ?? "", size: 40)
+            ImageCircular(url: vm.selectedUser?.url1 ?? "", size: 40)
         }.onTapGesture {
             showSheet.toggle()
         }
         .sheet(isPresented: $showSheet, onDismiss: {
         }, content: {
-            PerfilView(usuario: vm.usuarioSeleccionado!, esSheet: true, mostrarBotones: false, abrirChat: $noSeUtiliza)
+            PerfilView(usuario: vm.selectedUser!, esSheet: true, mostrarBotones: false, abrirChat: $noSeUtiliza)
 
         })
     }

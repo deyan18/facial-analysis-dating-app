@@ -27,9 +27,9 @@ struct EditarView: View {
     //Generos
     var generos = ["Mujer", "Hombre", "No Binario"]
     @State private var genero = ""
-    @State var generosBuscar: [GeneroModel] = [GeneroModel(name: "Mujer"),
-                                               GeneroModel(name: "Hombre"),
-                                               GeneroModel(name: "No Binario")]
+    @State var generosBuscar: [GenderModel] = [GenderModel(gender: "Mujer"),
+                                               GenderModel(gender: "Hombre"),
+                                               GenderModel(gender: "No Binario")]
     @State var generosSeleccionados: [String] = []
     
     //Atributos
@@ -87,10 +87,10 @@ struct EditarView: View {
                 hideKeyboard()
             }
             
-            if vm.loadingView {
+            if vm.showLoadingView {
                 Color.black.opacity(0.7).ignoresSafeArea()
                     .frame(width: 100, height: 100)
-                    .clipShape(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
                     
@@ -120,18 +120,18 @@ struct EditarView: View {
             trailing:
                 //Boton guardar
                 Button(action: {
-                    //Pasamos los datos de los atributos y los generos a sus arrays correspondientes
+                    //Pasamos los datos de los attributes y los generos a sus arrays correspondientes
                     atributosSeleccionados.removeAll()
-                    vm.atributos.forEach { a in
-                        if(a.esSeleccionado){
-                            atributosSeleccionados.append(a.texto)
+                    vm.attributes.forEach { a in
+                        if(a.isSelected){
+                            atributosSeleccionados.append(a.text)
                         }
                     }
                     
                     generosSeleccionados.removeAll()
                     generosBuscar.forEach { genero in
                         if(genero.isSelected){
-                            generosSeleccionados.append(genero.name)
+                            generosSeleccionados.append(genero.gender)
                         }
                     }
                     
@@ -144,7 +144,7 @@ struct EditarView: View {
                 }, label: {
                     Text("Guardar")
                 })
-                .disabled(vm.loadingView)
+                .disabled(vm.showLoadingView)
                 .alert(isPresented: $faltanDatos) {
                     Alert(
                         title: Text("Faltan datos"),
@@ -163,21 +163,21 @@ struct EditarView: View {
     
     var editarNombre: some View{
         VStack{
-            SeccionTitulo("Nombre")
-            TextFieldPersonalizado(placeholder: "Nombre y Apellidos", texto: $nombre)
+            SectionTitle("Nombre")
+            TextFieldCustom(placeholder: "Nombre y Apellidos", text: $nombre)
         }.padding(.vertical)
     }
     
     var editarDescripcion: some View{
         VStack{
-            SeccionTitulo("Sobre mi")
-            TextEditorPersonalizado(text: $sobreMi)
+            SectionTitle("Sobre mi")
+            TextEditorCustom(text: $sobreMi)
         }.padding(.vertical)
     }
     
     var edad: some View{
         VStack{
-            SeccionTitulo("Edad")
+            SectionTitle("Edad")
             DatePicker("Fecha de Nacimiento", selection: $fechaNacimiento, in: fechaComienzo...fechaFinal, displayedComponents: [.date])
                 
         }.padding(.vertical)
@@ -185,7 +185,7 @@ struct EditarView: View {
     
     var generoPicker: some View{
         VStack{
-            SeccionTitulo("Genero")
+            SectionTitle("Genero")
             Picker("Genero", selection: $genero) {
                 ForEach(generos, id: \.self) {
                     Text($0)
@@ -197,7 +197,7 @@ struct EditarView: View {
     
     var generoBusco: some View {
         VStack{
-            SeccionTitulo("Busco")
+            SectionTitle("Busco")
             HStack(spacing: 20){
                 ForEach(0..<generosBuscar.count){ index in
                     HStack {
@@ -212,7 +212,7 @@ struct EditarView: View {
                                     Image(systemName: "circle")
                                         .foregroundColor(.primary)
                                 }
-                                Text(generosBuscar[index].name).foregroundColor(.primary)
+                                Text(generosBuscar[index].gender).foregroundColor(.primary)
                                     .font(.callout)
                             }
                         }
@@ -227,11 +227,11 @@ struct EditarView: View {
     
     var fotos: some View {
         VStack{
-            SeccionTitulo("Fotos")
+            SectionTitle("Fotos")
             HStack(spacing: 20){
-                botonFotoView(foto: $foto1, url: vm.usuarioPrincipal?.url1 ?? "")
-                botonFotoView(foto: $foto2, url: vm.usuarioPrincipal?.url2 ?? "")
-                botonFotoView(foto: $foto3, url: vm.usuarioPrincipal?.url3 ?? "")
+                UploadImageButton(image: $foto1, url: vm.currentUser?.url1 ?? "")
+                UploadImageButton(image: $foto2, url: vm.currentUser?.url2 ?? "")
+                UploadImageButton(image: $foto3, url: vm.currentUser?.url3 ?? "")
             }
             
         }.padding(.vertical)
@@ -240,7 +240,7 @@ struct EditarView: View {
     var fotoVerificar: some View {
         HStack{
             VStack{
-                SeccionTitulo("Foto de Cara")
+                SectionTitle("Foto de Cara")
                 HStack{
                     Text("Esta foto no se mostrará en tu perfil.")
                         .font(.callout)
@@ -248,7 +248,7 @@ struct EditarView: View {
                 }
             }
             Spacer()
-            botonFotoView(foto: $fotoV, url: vm.usuarioPrincipal?.urlV ?? "")
+            UploadImageButton(image: $fotoV, url: vm.currentUser?.urlV ?? "")
         }.padding()
             
     }
@@ -256,8 +256,8 @@ struct EditarView: View {
     var atributosField: some View{
         VStack{
             if(!buscarAtributo){
-                //Lista con todos los atributos + boton de busqueda
-                SeccionTitulo("Atributos Disponibles")
+                //Lista con todos los attributes + boton de busqueda
+                SectionTitle("Atributos Disponibles")
                 ScrollView(.horizontal, showsIndicators: false){
                     HStack{
                         //Boton que activa el campo de busqueda
@@ -267,19 +267,19 @@ struct EditarView: View {
                                     buscarAtributo.toggle()
                                 }
                             } label: {
-                                AtributoView(texto: "Buscar", icono: "magnifyingglass.circle.fill")
+                                AttributeView(text: "Buscar", icon: "magnifyingglass.circle.fill")
                             }
                             
                         }
-                        //Lista de todos los atributos
-                        ForEach(vm.atributos.indices, id: \.self) { index in
-                            if(!vm.atributos[index].esSeleccionado){
+                        //Lista de todos los attributes
+                        ForEach(vm.attributes.indices, id: \.self) { index in
+                            if(!vm.attributes[index].isSelected){
                                 Button {
                                     withAnimation() {
-                                        vm.atributos[index].esSeleccionado = true
+                                        vm.attributes[index].isSelected = true
                                     }
                                 } label: {
-                                    AtributoView(texto: vm.atributos[index].texto, icono: "plus.circle.fill")
+                                    AttributeView(text: vm.attributes[index].text, icon: "plus.circle.fill")
                                         .foregroundColor(.primary)
                                     
                                 }
@@ -301,19 +301,19 @@ struct EditarView: View {
                     }
                 }
                 //Campo de busqueda
-                TextFieldPersonalizado(placeholder: "Ej: Cantante", texto: $atributoBusqueda)
+                TextFieldCustom(placeholder: "Ej: Cantante", text: $atributoBusqueda)
 
                 //Lista de resultados de la busqueda
                 ScrollView(.horizontal, showsIndicators: false){
                     HStack{
-                        ForEach(vm.atributos.indices, id: \.self) { index in
-                            if(!vm.atributos[index].esSeleccionado && vm.atributos[index].texto.lowercased().contains(atributoBusqueda.lowercased())){
+                        ForEach(vm.attributes.indices, id: \.self) { index in
+                            if(!vm.attributes[index].isSelected && vm.attributes[index].text.lowercased().contains(atributoBusqueda.lowercased())){
                                 Button {
                                     withAnimation() {
-                                        vm.atributos[index].esSeleccionado = true
+                                        vm.attributes[index].isSelected = true
                                     }
                                 } label: {
-                                    AtributoView(texto: vm.atributos[index].texto, icono: "plus.circle.fill")
+                                    AttributeView(text: vm.attributes[index].text, icon: "plus.circle.fill")
                                         .foregroundColor(.primary)
                                     
                                 }
@@ -323,18 +323,18 @@ struct EditarView: View {
                 }
             }
             
-            //Lista de atributos seleccionados
-            SeccionTitulo("Atributos Seleccionados")
+            //Lista de attributes seleccionados
+            SectionTitle("Atributos Seleccionados")
             ScrollView(.horizontal, showsIndicators: false){
                 HStack{
-                    ForEach(vm.atributos.indices, id: \.self) { index in
-                        if(vm.atributos[index].esSeleccionado){
+                    ForEach(vm.attributes.indices, id: \.self) { index in
+                        if(vm.attributes[index].isSelected){
                             Button {
                                 withAnimation() {
-                                    vm.atributos[index].esSeleccionado = false
+                                    vm.attributes[index].isSelected = false
                                 }
                             } label: {
-                                AtributoView(texto: vm.atributos[index].texto, icono: "minus.circle.fill")
+                                AttributeView(text: vm.attributes[index].text, icon: "minus.circle.fill")
                                     .foregroundColor(.primary)
                             }
                         }
@@ -347,36 +347,36 @@ struct EditarView: View {
     //Funcion que se llama onAppear que rellena los campos con los datos de la BD
     func cargarDatos(){
         //Valor de campos de texto, picker de sexo y fecha nacimiento
-        nombre = vm.usuarioPrincipal?.nombre ?? ""
-        sobreMi = vm.usuarioPrincipal?.sobreMi ?? ""
-        genero = vm.usuarioPrincipal?.genero ?? ""
-        fechaNacimiento = vm.usuarioPrincipal?.fechaNacimiento ?? Date()
+        nombre = vm.currentUser?.name ?? ""
+        sobreMi = vm.currentUser?.aboutMe ?? ""
+        genero = vm.currentUser?.gender ?? ""
+        fechaNacimiento = vm.currentUser?.birthDate ?? Date()
 
-        url1 = vm.usuarioPrincipal?.url1 ?? ""
-        url2 = vm.usuarioPrincipal?.url2 ?? ""
-        url3 = vm.usuarioPrincipal?.url3 ?? ""
-        urlV = vm.usuarioPrincipal?.urlV ?? ""
+        url1 = vm.currentUser?.url1 ?? ""
+        url2 = vm.currentUser?.url2 ?? ""
+        url3 = vm.currentUser?.url3 ?? ""
+        urlV = vm.currentUser?.urlV ?? ""
         
         //Lista de generos que busca
-        vm.usuarioPrincipal?.busco.forEach({ generoGuardado in
+        vm.currentUser?.lookingFor.forEach({ generoGuardado in
             for (index,generoLista) in generosBuscar.enumerated() {
-                if(generoLista.name == generoGuardado){
+                if(generoLista.gender == generoGuardado){
                     generosBuscar[index].isSelected = true
                 }
             }
         })
         
-        //Limpiamos los atributos
-        for (index, _) in vm.atributos.enumerated() {
-           vm.atributos[index].esSeleccionado = false
+        //Limpiamos los attributes
+        for (index, _) in vm.attributes.enumerated() {
+           vm.attributes[index].isSelected = false
         }
         
         
-        //Lista de atributos previamente seleccioandos
-        vm.usuarioPrincipal?.atributos.forEach({ atributo in
-            for (index,atributosLista) in vm.atributos.enumerated() {
-                if(atributo == atributosLista.texto){
-                    vm.atributos[index].esSeleccionado = true
+        //Lista de attributes previamente seleccioandos
+        vm.currentUser?.attributes.forEach({ atributo in
+            for (index,atributosLista) in vm.attributes.enumerated() {
+                if(atributo == atributosLista.text){
+                    vm.attributes[index].isSelected = true
                 }
             }
         })
@@ -386,7 +386,7 @@ struct EditarView: View {
     private func subirFotoTemp(){
         guard let uid = FirebaseManager.shared.auth.currentUser?.uid else{return}
         
-        vm.loadingView = true
+        vm.showLoadingView = true
         let refFotoV = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoTemp")
         guard let fotoVData = fotoV.jpegData(compressionQuality: 0.8) else {return}
         refFotoV.putData(fotoVData, metadata: nil) {metadata, err in
@@ -412,7 +412,7 @@ struct EditarView: View {
     }
     
     private func guardarDatos(){
-        vm.loadingView = true
+        vm.showLoadingView = true
         //Para las tareas asincronas
         let dispatchGroup = DispatchGroup()
         let dispatchQueue = DispatchQueue(label: "any-label-name")
@@ -530,7 +530,7 @@ struct EditarView: View {
                 dispatchSemaphore.wait()
             } else{
                 DispatchQueue.main.async {
-                    vm.loadingView = false
+                    vm.showLoadingView = false
                 }
             }
         }
@@ -550,9 +550,9 @@ struct EditarView: View {
                                 return
                             }
                             
-                            vm.loadingView = false
-                            vm.fetchUsuarioActual()
-                            vm.calcularCompatibles()
+                            vm.showLoadingView = false
+                            vm.fetchCurrentUser()
+                            vm.analyzeUsers()
                         }
 
                 }
@@ -566,7 +566,7 @@ struct EditarView: View {
                 do {
                     let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
                     
-                    let url = NSURL(string: "\(vm.urlapi)/validarFoto/")!
+                    let url = NSURL(string: "\(vm.apiURL)/validarFoto/")!
                     let request = NSMutableURLRequest(url: url as URL)
                     request.httpMethod = "POST"
                     
@@ -579,7 +579,7 @@ struct EditarView: View {
                             //Para alerta
                             DispatchQueue.main.async {
                                 apiErrorGuardar = true
-                                vm.loadingView = false
+                                vm.showLoadingView = false
                             }
                             return
                         }
@@ -590,7 +590,7 @@ struct EditarView: View {
 
                             //Para alerta
                             DispatchQueue.main.async {
-                                vm.loadingView = false
+                                vm.showLoadingView = false
                                 self.fotoValida = result
                                 self.alertFoto = !self.fotoValida
                             }
@@ -603,7 +603,7 @@ struct EditarView: View {
                     task.resume()
                 } catch {
                     DispatchQueue.main.async {
-                        vm.loadingView = false
+                        vm.showLoadingView = false
                         apiErrorGuardar = true
                     }
                     print(error)

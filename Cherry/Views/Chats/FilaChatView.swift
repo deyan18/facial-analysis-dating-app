@@ -8,25 +8,25 @@
 import SwiftUI
 
 struct FilaChatView: View {
-    @State var reciente: RecienteModel
+    @State var reciente: RecentMessageModel
 
     var body: some View {
         HStack(spacing: 20) {
-            WebFotoCircular(url: reciente.urlFoto, size: 80)
+            ImageCircular(url: reciente.url, size: 80)
 
             ZStack {
                 VStack(alignment: .leading, spacing: 5) {
                     HStack {
-                        TextNombre(texto: reciente.nombre)
+                        SemiBoldText(texto: reciente.name)
                         Spacer()
-                        Text(reciente.fecha.fechaString())
+                        Text(reciente.date.dateString())
                     }
 
                     HStack {
-                        TextDentroChat(texto: reciente.texto)
+                        TextDentroChat(texto: reciente.text)
                     }
                 }
-                if !reciente.esLeido {
+                if !reciente.isRead {
                     circuloPendiente
                 }
             }

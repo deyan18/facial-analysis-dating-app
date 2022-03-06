@@ -15,13 +15,13 @@ struct PersonalView: View {
     var body: some View {
         
         NavigationView{
-            PerfilView(usuario: vm.usuarioPrincipal!, esSheet: false, mostrarBotones: false, abrirChat: $noSeUtiliza)
+            PerfilView(usuario: vm.currentUser!, esSheet: false, mostrarBotones: false, abrirChat: $noSeUtiliza)
             .navigationTitle("Perfil")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear(){
                 
                 withAnimation(.spring()) {
-                    vm.esconderBarra = false
+                    vm.hideTabBar = false
                 }
             }
             

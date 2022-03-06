@@ -33,11 +33,11 @@ struct LoginView: View {
 
     var body: some View {
         ZStack {
-            FondoPersonalizado()
+            CustomBG()
                 .onTapGesture {
                     hideKeyboard()
                 }
-            if(vm.mostrarBotonInfo){
+            if(vm.showUserManualButton){
             botonManualUsuario
             }
             if mostrarRegistrar {
@@ -48,7 +48,7 @@ struct LoginView: View {
                 VStack {
                     VStack {
                         // Header
-                        LogoLogin()
+                        LogoSignIn()
                             .offset(y: 30)
                             .onTapGesture {
                                 correo = "alina@ual.es"
@@ -69,7 +69,7 @@ struct LoginView: View {
                 }
                 .frame(width: UIScreen.screenWidth * 0.8, height: UIScreen.screenHeight * 0.65)
                 .background(.ultraThinMaterial)
-                .mask(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
+                .mask(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
                 .onTapGesture {
                     hideKeyboard()
                 }
@@ -82,7 +82,7 @@ struct LoginView: View {
             
             
         }.onAppear{
-            vm.mostrarBotonInfo = true
+            vm.showUserManualButton = true
         }
     }
     
@@ -118,9 +118,9 @@ struct LoginView: View {
     
     var elementosOlvidada: some View{
         VStack{
-            TextTitulo(texto: "Recuperar Cuenta")
+            TitleText(texto: "Recuperar Cuenta")
                 .padding(.bottom, 20)
-            TextFieldPersonalizado(placeholder: "Correo Electrónico", texto: $correo, sinAutocorrector: true, mayusculas: false)
+            TextFieldCustom(placeholder: "Correo Electrónico", text: $correo, disableAutocorrection: true, autocap: false)
             botonRestaurar
             Spacer()
             botonVolver
@@ -135,11 +135,11 @@ struct LoginView: View {
     
     var elementosLogin: some View{
         VStack{
-            TextTitulo(texto: "Iniciar Sesión")
+            TitleText(texto: "Iniciar Sesión")
                 .padding(.bottom, 20)
             // Campos de texto
-            TextFieldPersonalizado(placeholder: "Correo Electrónico", texto: $correo, sinAutocorrector: true, mayusculas: false)
-            SecureFieldPersonalizado(placeholder: "Contraseña", texto: $contrasenia)
+            TextFieldCustom(placeholder: "Correo Electrónico", text: $correo, disableAutocorrection: true, autocap: false)
+            SecureFieldCustom(placeholder: "Contraseña", text: $contrasenia)
             // Botones
             botonDatosOlvidados
             botonIniciarSesion
@@ -162,7 +162,7 @@ struct LoginView: View {
                 restaurarContrasenia()
             }
         } label: {
-            BotonPersonalizado(texto: "Continuar", color: Color.accentColor)
+            ButtonCustom(text: "Continuar", color: Color.accentColor)
                 .padding(.top)
         }
         .disabled(correo != "" && !correo.contains("@"))
@@ -184,7 +184,7 @@ struct LoginView: View {
             }
         } label: {
             Label("Volver", systemImage: "chevron.backward")
-                .foregroundColor(.primary.opacity(OPACITY))
+                .foregroundColor(.primary.opacity(ELEMENT_OPACITY))
 
         }
     }
@@ -211,7 +211,7 @@ struct LoginView: View {
         } label: {
             Text("¿Has olvidado tu contraseña?")
                 .font(.callout)
-                .foregroundColor(.primary.opacity(OPACITY))
+                .foregroundColor(.primary.opacity(ELEMENT_OPACITY))
         }
         .padding(.bottom, 40)
     }
@@ -223,7 +223,7 @@ struct LoginView: View {
                 loginUsuario()
             }
         } label: {
-            BotonPersonalizado(texto: "Iniciar Sesión", color: Color.accentColor)
+            ButtonCustom(text: "Iniciar Sesión", color: Color.accentColor)
                 .frame(height: 20)
         }
         .disabled(correo != "" && !correo.contains("@"))
@@ -233,14 +233,14 @@ struct LoginView: View {
     var botonRegistrarse: some View {
         Button {
             hideKeyboard()
-            withAnimation(.spring(response: SPRINGRESPONSE, dampingFraction: SPRINGDAMPING, blendDuration: 0)) {
+            withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
                 mostrarRegistrar.toggle()
             }
         } label: {
             Text("¿No tienes cuenta?")
                 .frame(height: 40)
                 .font(.callout)
-                .foregroundColor(.primary.opacity(OPACITY))
+                .foregroundColor(.primary.opacity(ELEMENT_OPACITY))
                 .padding()
         }.padding(.top, 20)
     }
@@ -249,22 +249,22 @@ struct LoginView: View {
         FirebaseManager.shared.auth.signIn(withEmail: correo, password: contrasenia) { result, err in
             if let err = err {
                 alertProblemaLogin = true
-                if DEBUGCONSOLE {
+                if SHOW_DEBUG_CONSOLE {
                     print("Error Login: ", err)
                 }
                 return
             }
 
-            if DEBUGCONSOLE {
+            if SHOW_DEBUG_CONSOLE {
                 print("Login Correcto: \(result?.user.uid ?? "")")
             }
             correo = ""
             contrasenia = ""
             vm.tabbarIndex = 0
-            vm.fetchUsuarioActual() // Cargamos el usuario actual
+            vm.fetchCurrentUser() // Cargamos el usuario actual
 
-            withAnimation(.spring(response: SPRINGRESPONSE, dampingFraction: SPRINGDAMPING, blendDuration: 0)) {
-                vm.usuarioLoggedIn = true
+            withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
+                vm.signedIn = true
             }
         }
     }

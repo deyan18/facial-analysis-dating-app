@@ -13,7 +13,7 @@ struct ParaTiView: View {
     @EnvironmentObject var vm: MainViewModel
     @EnvironmentObject var lm: LocationManager
 
-    @State var usuarioSeleccionado: UsuarioModel? = nil // Persona que se abre en el sheet
+    @State var usuarioSeleccionado: UserModel? = nil // Persona que se abre en el sheet
 
     // Toggles
     @State var abrirPerfil: Bool = false // Para abrir sheet con el perfil de la persona
@@ -46,11 +46,11 @@ struct ParaTiView: View {
             }
             .navigationBarHidden(true)
             .onAppear {
-                vm.esconderBarra = false
+                vm.hideTabBar = false
                 cambioUbicacion()
             }
 
-            .alert(isPresented: $vm.errorApi) {
+            .alert(isPresented: $vm.apiError) {
                 Alert(
                     title: Text("Problema con servidor"),
                     message: Text("No se han podido ordenar las personas por rasgos faciales. Pulsa el logo para volver a intentarlo.")
@@ -61,13 +61,13 @@ struct ParaTiView: View {
     
     func cambioUbicacion() {
         //vm.calcularRecomendaciones()
-        guard let ubicacionGuardada = vm.usuarioPrincipal?.ubicacion else {return}
+        guard let ubicacionGuardada = vm.currentUser?.location else {return}
         guard let ubicacionActual = lm.lastLocation else {return}
         let distancia = ubicacionGuardada.distance(from: ubicacionActual)
         print("DISTANCIA: \(distancia)")
-        if distancia > DISTANCIA_MAX_ACTUALIZAR {
-            vm.actualizarUbicacion(ubicacion: ubicacionActual)
-            vm.calcularCompatibles()
+        if distancia > MAX_DISTANCE_UPDATE {
+            vm.updateLocation(location: ubicacionActual)
+            vm.analyzeUsers()
         }
     }
 
@@ -92,12 +92,12 @@ struct ParaTiView: View {
     
     var iconoBoton: some View{
         HStack {
-            if vm.apiEnUso {
+            if vm.apiInUse {
                 ProgressView()
                     .padding()
             } else {
                 Button {
-                    vm.calcularCompatibles()
+                    vm.analyzeUsers()
                 } label: {
                     Image("Logo")
                         .resizable()
@@ -110,20 +110,20 @@ struct ParaTiView: View {
     
     var titulo: some View{
         HStack {
-            if vm.DEBUG { // Para mostrar info DEBUG
+            if vm.showDebug { // Para mostrar info DEBUG
                 VStack {
-                    Text("ubi: \(vm.usuarioPrincipal?.ubicacion.coordinate.longitude ?? -1.0):\(vm.usuarioPrincipal?.ubicacion.coordinate.latitude ?? -1.0)")
+                    Text("ubi: \(vm.currentUser?.location.coordinate.longitude ?? -1.0):\(vm.currentUser?.location.coordinate.latitude ?? -1.0)")
                         .font(.caption)
-                    Text("EMin: \(vm.usuarioPrincipal?.edadMin ?? -1) EMax: \(vm.usuarioPrincipal?.edadMax ?? -1) ")
+                    Text("EMin: \(vm.currentUser?.ageMin ?? -1) EMax: \(vm.currentUser?.ageMax ?? -1) ")
                         .font(.caption)
                 }
                 .onTapGesture {
-                    vm.DEBUG.toggle()
+                    vm.showDebug.toggle()
                 }
             } else {
-                TextTitulo(texto: "Para Ti")
+                TitleText(texto: "Para Ti")
                     .onTapGesture {
-                        vm.DEBUG.toggle()
+                        vm.showDebug.toggle()
                     }
             }
         }
@@ -134,7 +134,7 @@ struct ParaTiView: View {
             Spacer()
             Button {
                 withAnimation {
-                    vm.abrirFiltro.toggle()
+                    vm.openFilters.toggle()
                 }
             } label: {
                 Image(systemName: "slider.horizontal.3")
@@ -150,10 +150,10 @@ struct ParaTiView: View {
         ZStack {
             VStack {
                 // Foto grande
-                FotoMasRecomendado(url: vm.usuariosCompatibles.first?.url1 ?? "")
+                BigImageCircular(url: vm.usersAnalyzed.first?.url1 ?? "")
                     .onTapGesture {
-                        vm.usuarioSeleccionado = vm.usuariosCompatibles.first
-                        usuarioSeleccionado = vm.usuariosCompatibles.first
+                        vm.selectedUser = vm.usersAnalyzed.first
+                        usuarioSeleccionado = vm.usersAnalyzed.first
                         abrirPerfil.toggle()
                     }
                     .sheet(item: $usuarioSeleccionado) {
@@ -161,18 +161,16 @@ struct ParaTiView: View {
                         PerfilView(usuario: model, esSheet: true, mostrarBotones: true, abrirChat: $abrirChat)
                     }
 
-                SemiTitulo(vm.usuariosCompatibles.first?.nombre ?? "")
+                SemiBoldTitle(vm.usersAnalyzed.first?.name ?? "")
 
-                if vm.DEBUG {
-                    Text("ubi: \(vm.usuariosCompatibles.first?.ubicacion.coordinate.longitude ?? -1.0):\(vm.usuariosCompatibles.first?.ubicacion.coordinate.latitude ?? -1.0)")
+                if vm.showDebug {
+                    Text("ubi: \(vm.usersAnalyzed.first?.location.coordinate.longitude ?? -1.0):\(vm.usersAnalyzed.first?.location.coordinate.latitude ?? -1.0)")
                         .font(.caption)
-                    Text("disMetros: \(vm.usuariosCompatibles.first?.distanciaMetros ?? -1.0)m")
-                        .font(.caption)
-                    Text("disRasgos: \(vm.usuariosCompatibles.first?.distanciaRasgos ?? -1.0)")
+                    Text("disRasgos: \(vm.usersAnalyzed.first?.distanceFeatures ?? -1.0)")
                         .font(.caption)
                 }
             }
-            if(!vm.usuariosCompatibles.isEmpty){
+            if(!vm.usersAnalyzed.isEmpty){
                 badge
             }
         }
@@ -193,26 +191,24 @@ struct ParaTiView: View {
     // Lista con el resto de personas en usuariosCompatibles
     var listaPersonas: some View {
         LazyVGrid(columns: columns) {
-            ForEach(vm.usuariosCompatibles, id: \.self) { usuario in
-                if usuario.uid != vm.usuariosCompatibles.first?.uid {
+            ForEach(vm.usersAnalyzed, id: \.self) { usuario in
+                if usuario.uid != vm.usersAnalyzed.first?.uid {
                     VStack {
-                        WebFotoCircular(url: usuario.url1, size: 108)
-                        TextNombre(texto: usuario.nombre)
-                        if vm.DEBUG {
-                            Text("ubi: \(usuario.ubicacion.coordinate.longitude):")
+                        ImageCircular(url: usuario.url1, size: 108)
+                        SemiBoldText(texto: usuario.name)
+                        if vm.showDebug {
+                            Text("ubi: \(usuario.location.coordinate.longitude):")
                                 .font(.caption)
-                            Text("\(usuario.ubicacion.coordinate.latitude)")
+                            Text("\(usuario.location.coordinate.latitude)")
                                 .font(.caption)
-                            Text("dM: \(usuario.distanciaMetros)")
-                                .font(.caption)
-                            Text("dR: \(usuario.distanciaRasgos)")
+                            Text("dR: \(usuario.distanceFeatures)")
                                 .font(.caption)
                         }
                     }
                     .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
                     .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
                     .onTapGesture { // Al pulsar abrimos sheet con el perfil
-                        vm.usuarioSeleccionado = usuario
+                        vm.selectedUser = usuario
                         usuarioSeleccionado = usuario
                         abrirPerfil.toggle()
 

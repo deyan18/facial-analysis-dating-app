@@ -23,9 +23,9 @@ struct CrearPerfilView: View {
     var generos = ["Mujer", "Hombre", "No Binario"]
 
     // Genero busca
-    @State var generosBuscar: [GeneroModel] = [GeneroModel(name: "Mujer"),
-                                               GeneroModel(name: "Hombre"),
-                                               GeneroModel(name: "No Binario")]
+    @State var generosBuscar: [GenderModel] = [GenderModel(gender: "Mujer"),
+                                               GenderModel(gender: "Hombre"),
+                                               GenderModel(gender: "No Binario")]
     @State var generosBuscarSeleccionados: [String] = []
 
     // Edad
@@ -89,7 +89,7 @@ struct CrearPerfilView: View {
         }
         .frame(width: UIScreen.screenWidth * 0.9, height: UIScreen.screenHeight * 0.85)
         .background(.ultraThinMaterial)
-        .mask(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
+        .mask(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
         .onTapGesture {
             hideKeyboard()
         }
@@ -98,17 +98,17 @@ struct CrearPerfilView: View {
         // Cuando todo se ha completado correctamente iniciamos sesion
         .onChange(of: iniciarSesion) { _ in
             if iniciarSesion {
-                vm.fetchUsuarioActual()
-                vm.usuarioLoggedIn = true
+                vm.fetchCurrentUser()
+                vm.signedIn = true
             }
         }
         .onAppear{
             withAnimation {
-                vm.mostrarBotonInfo = false
+                vm.showUserManualButton = false
             }
         }
             
-            if vm.loadingView {
+            if vm.showLoadingView {
                 Color.black.opacity(0.4).ignoresSafeArea()
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
@@ -126,8 +126,8 @@ struct CrearPerfilView: View {
 
     var header: some View {
         VStack {
-            LogoLogin()
-            TextTitulo(texto: "Personaliza tu perfil")
+            LogoSignIn()
+            TitleText(texto: "Personaliza tu perfil")
                 .padding(.bottom, 20)
         }.alert(isPresented: $alertFaltanDatos) {
             Alert(
@@ -140,7 +140,7 @@ struct CrearPerfilView: View {
     // Picker para elegir el genero propio
     var generoBusco: some View {
         VStack {
-            SeccionTitulo("Busco")
+            SectionTitle("Busco")
             HStack(spacing: 20) {
                 ForEach(0 ..< generosBuscar.count) { index in
                     HStack {
@@ -155,7 +155,7 @@ struct CrearPerfilView: View {
                                     Image(systemName: "circle")
                                         .foregroundColor(.primary)
                                 }
-                                Text(generosBuscar[index].name).foregroundColor(.primary)
+                                Text(generosBuscar[index].gender).foregroundColor(.primary)
                                     .font(.callout)
                             }
                         }.buttonStyle(BorderlessButtonStyle())
@@ -168,13 +168,13 @@ struct CrearPerfilView: View {
 
     var fotos: some View {
         VStack {
-            SeccionTitulo("Fotos")
+            SectionTitle("Fotos")
             HStack {
-                botonFotoView(foto: $foto1)
+                UploadImageButton(image: $foto1)
                 Spacer()
-                botonFotoView(foto: $foto2)
+                UploadImageButton(image: $foto2)
                 Spacer()
-                botonFotoView(foto: $foto3)
+                UploadImageButton(image: $foto3)
             }
         }.padding(.vertical)
     }
@@ -182,7 +182,7 @@ struct CrearPerfilView: View {
     var fotoVerificar: some View {
         HStack {
             VStack {
-                SeccionTitulo("Foto de cara")
+                SectionTitle("Foto de cara")
                 HStack {
                     Text("Esta foto no se mostrará en tu perfil.")
                         .font(.callout)
@@ -195,7 +195,7 @@ struct CrearPerfilView: View {
                 }
             }
             Spacer()
-            botonFotoView(foto: $fotoV)
+            UploadImageButton(image: $fotoV)
                 
 
         }.padding(.vertical)
@@ -204,27 +204,27 @@ struct CrearPerfilView: View {
 
     var editarNombre: some View {
         VStack {
-            TextFieldPersonalizado(placeholder: "Nombre y Apellidos", texto: $nombre)
+            TextFieldCustom(placeholder: "Nombre y Apellidos", text: $nombre)
         }.padding(.vertical)
     }
 
     var editarDescripcion: some View {
         VStack {
-            SeccionTitulo("Sobre Mi")
-            TextEditorPersonalizado(text: $sobreMi)
+            SectionTitle("Sobre Mi")
+            TextEditorCustom(text: $sobreMi)
         }.padding(.vertical)
     }
 
     var edad: some View {
         VStack {
-            SeccionTitulo("Edad")
+            SectionTitle("Edad")
             DatePicker("Fecha de Nacimiento", selection: $fechaNacimiento, in: fechaComienzo ... fechaFinal, displayedComponents: [.date])
         }.padding(.vertical)
     }
 
     var generoPicker: some View {
         VStack {
-            SeccionTitulo("Mi Genero")
+            SectionTitle("Mi Genero")
             Picker("Genero", selection: $generoSeleccionado) {
                 ForEach(generos, id: \.self) {
                     Text($0)
@@ -237,7 +237,7 @@ struct CrearPerfilView: View {
     var atributosField: some View {
         VStack {
             if !buscarAtributo {
-                SeccionTitulo("Atributos Disponibles")
+                SectionTitle("Atributos Disponibles")
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
                         HStack {
@@ -246,17 +246,17 @@ struct CrearPerfilView: View {
                                     buscarAtributo.toggle()
                                 }
                             } label: {
-                                AtributoView(texto: "Buscar", icono: "magnifyingglass.circle.fill")
+                                AttributeView(text: "Buscar", icon: "magnifyingglass.circle.fill")
                             }
                         }
-                        ForEach(vm.atributos.indices, id: \.self) { index in
-                            if !vm.atributos[index].esSeleccionado {
+                        ForEach(vm.attributes.indices, id: \.self) { index in
+                            if !vm.attributes[index].isSelected {
                                 Button {
                                     withAnimation {
-                                        vm.atributos[index].esSeleccionado = true
+                                        vm.attributes[index].isSelected = true
                                     }
                                 } label: {
-                                    AtributoView(texto: vm.atributos[index].texto, icono: "plus.circle.fill")
+                                    AttributeView(text: vm.attributes[index].text, icon: "plus.circle.fill")
                                         .foregroundColor(.primary)
                                 }
                             }
@@ -277,17 +277,17 @@ struct CrearPerfilView: View {
                     }
                 }
                 //Campo de busqueda
-                TextFieldPersonalizado(placeholder: "Ej: Cantante", texto: $atributoBusqueda)
+                TextFieldCustom(placeholder: "Ej: Cantante", text: $atributoBusqueda)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
-                        ForEach(vm.atributos.indices, id: \.self) { index in
-                            if !vm.atributos[index].esSeleccionado && vm.atributos[index].texto.lowercased().contains(atributoBusqueda.lowercased()) {
+                        ForEach(vm.attributes.indices, id: \.self) { index in
+                            if !vm.attributes[index].isSelected && vm.attributes[index].text.lowercased().contains(atributoBusqueda.lowercased()) {
                                 Button {
                                     withAnimation {
-                                        vm.atributos[index].esSeleccionado = true
+                                        vm.attributes[index].isSelected = true
                                     }
                                 } label: {
-                                    AtributoView(texto: vm.atributos[index].texto, icono: "plus.circle.fill")
+                                    AttributeView(text: vm.attributes[index].text, icon: "plus.circle.fill")
                                         .foregroundColor(.primary)
                                 }
                             }
@@ -295,17 +295,17 @@ struct CrearPerfilView: View {
                     }
                 }
             }
-            SeccionTitulo("Atributos Seleccionados")
+            SectionTitle("Atributos Seleccionados")
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
-                    ForEach(vm.atributos.indices, id: \.self) { index in
-                        if vm.atributos[index].esSeleccionado {
+                    ForEach(vm.attributes.indices, id: \.self) { index in
+                        if vm.attributes[index].isSelected {
                             Button {
                                 withAnimation {
-                                    vm.atributos[index].esSeleccionado = false
+                                    vm.attributes[index].isSelected = false
                                 }
                             } label: {
-                                AtributoView(texto: vm.atributos[index].texto, icono: "minus.circle.fill")
+                                AttributeView(text: vm.attributes[index].text, icon: "minus.circle.fill")
                                     .foregroundColor(.primary)
                             }
                         }
@@ -319,28 +319,28 @@ struct CrearPerfilView: View {
         Button {
             // Pasamos los datos de los atributos y los generos a sus arrays correspondientes
             atributosSeleccionados.removeAll()
-            vm.atributos.forEach { a in
-                if a.esSeleccionado {
-                    atributosSeleccionados.append(a.texto)
+            vm.attributes.forEach { a in
+                if a.isSelected {
+                    atributosSeleccionados.append(a.text)
                 }
             }
 
             generosBuscarSeleccionados.removeAll()
             generosBuscar.forEach { g in
                 if g.isSelected {
-                    generosBuscarSeleccionados.append(g.name)
+                    generosBuscarSeleccionados.append(g.gender)
                 }
             }
 
             if (nombre == "" || sobreMi == "" || atributosSeleccionados.isEmpty || generosBuscarSeleccionados.isEmpty || foto1 == fotoEmpty || foto2 == fotoEmpty || foto3 == fotoEmpty || fotoV == fotoEmpty) {
                 alertFaltanDatos = true
             } else {
-                vm.loadingView = true
+                vm.showLoadingView = true
                 guardarDatos()
             }
 
         } label: {
-            BotonPersonalizado(texto: "Guardar", color: Color.accentColor)
+            ButtonCustom(text: "Guardar", color: Color.accentColor)
                 .padding(.top, 20)
         }
         
@@ -368,7 +368,7 @@ struct CrearPerfilView: View {
             dispatchGroup.enter()
             refFoto1.putData(foto1Data, metadata: nil) { _, err in
                 if let err = err {
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Error subiendo foto1: \(err)")
                     }
                     return
@@ -376,7 +376,7 @@ struct CrearPerfilView: View {
 
                 refFoto1.downloadURL { url1, err in
                     if let err = err {
-                        if DEBUGCONSOLE {
+                        if SHOW_DEBUG_CONSOLE {
                             print("Error descargando url foto1: \(err)")
                         }
                         return
@@ -384,7 +384,7 @@ struct CrearPerfilView: View {
 
                     self.url1 = url1?.absoluteString ?? ""
 
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Correcto url foto1: \(url1?.absoluteString ?? "")")
                     }
                     dispatchSemaphore.signal()
@@ -396,7 +396,7 @@ struct CrearPerfilView: View {
             dispatchGroup.enter()
             refFoto2.putData(foto2Data, metadata: nil) { _, err in
                 if let err = err {
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Error subiendo foto2: \(err)")
                     }
                     return
@@ -404,7 +404,7 @@ struct CrearPerfilView: View {
 
                 refFoto2.downloadURL { url2, err in
                     if let err = err {
-                        if DEBUGCONSOLE {
+                        if SHOW_DEBUG_CONSOLE {
                             print("Error descargando url foto1: \(err)")
                         }
                         return
@@ -412,7 +412,7 @@ struct CrearPerfilView: View {
 
                     self.url2 = url2?.absoluteString ?? ""
 
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Correcto url foto2: \(url2?.absoluteString ?? "")")
                     }
                     dispatchSemaphore.signal()
@@ -424,7 +424,7 @@ struct CrearPerfilView: View {
             dispatchGroup.enter()
             refFoto3.putData(foto3Data, metadata: nil) { _, err in
                 if let err = err {
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Error subiendo foto3: \(err)")
                     }
                     return
@@ -432,14 +432,14 @@ struct CrearPerfilView: View {
 
                 refFoto3.downloadURL { url3, err in
                     if let err = err {
-                        if DEBUGCONSOLE {
+                        if SHOW_DEBUG_CONSOLE {
                             print("Error descargando url foto3: \(err)")
                         }
                         return
                     }
 
                     self.url3 = url3?.absoluteString ?? ""
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Correcto url foto3: \(url3?.absoluteString ?? "")")
                     }
                     dispatchSemaphore.signal()
@@ -451,7 +451,7 @@ struct CrearPerfilView: View {
             dispatchGroup.enter()
             refFotoV.putData(fotoVData, metadata: nil) { _, err in
                 if let err = err {
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Error subiendo fotoV: \(err)")
                     }
                     return
@@ -459,7 +459,7 @@ struct CrearPerfilView: View {
 
                 refFotoV.downloadURL { urlV, err in
                     if let err = err {
-                        if DEBUGCONSOLE {
+                        if SHOW_DEBUG_CONSOLE {
                             print("Error descargando url fotoV: \(err)")
                         }
                         return
@@ -469,7 +469,7 @@ struct CrearPerfilView: View {
 
                     validarFoto(url: self.urlV)
 
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Correcto url fotoV: \(urlV?.absoluteString ?? "")")
                     }
                     dispatchSemaphore.signal()
@@ -488,13 +488,13 @@ struct CrearPerfilView: View {
                 FirebaseManager.shared.firestore.collection("usuarios")
                     .document(uid).setData(userData) { err in
                         if let err = err {
-                            if DEBUGCONSOLE {
+                            if SHOW_DEBUG_CONSOLE {
                                 print("Error guardar: \(err)")
                             }
-                            vm.loadingView = false
+                            vm.showLoadingView = false
                             return
                         }
-                        vm.loadingView = false
+                        vm.showLoadingView = false
                         //vm.fetchUsuarioActual()
                     }
             }
@@ -506,7 +506,7 @@ struct CrearPerfilView: View {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
 
-            let url = NSURL(string: "\(vm.urlapi)/validarFoto/")!
+            let url = NSURL(string: "\(vm.apiURL)/validarFoto/")!
             let request = NSMutableURLRequest(url: url as URL)
             request.httpMethod = "POST"
 
@@ -517,10 +517,10 @@ struct CrearPerfilView: View {
                 if error != nil {
                     DispatchQueue.main.async {
                         apiErrorGuardar = true
-                        vm.loadingView = false
+                        vm.showLoadingView = false
                     }
-                    if DEBUGCONSOLE {
-                        print("Error -> \(error)")
+                    if SHOW_DEBUG_CONSOLE {
+                        print("Error ->", error ?? "")
                     }
                     return
                 }
@@ -529,12 +529,12 @@ struct CrearPerfilView: View {
                     let result = try decoder.decode(Bool.self, from: data!)
                     self.alertFotoNoValida = !result
                     self.iniciarSesion = result
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Result -> \(result)")
                     }
 
                 } catch {
-                    if DEBUGCONSOLE {
+                    if SHOW_DEBUG_CONSOLE {
                         print("Error -> \(error)")
                     }
                 }
@@ -542,7 +542,7 @@ struct CrearPerfilView: View {
 
             task.resume()
         } catch {
-            if DEBUGCONSOLE {
+            if SHOW_DEBUG_CONSOLE {
                 print(error)
             }
         }

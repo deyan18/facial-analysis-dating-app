@@ -16,7 +16,7 @@ struct OlvidadaView: View {
             
         }.padding()
             .background(.thinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: RADIUSCARDS, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
             .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
             .padding()

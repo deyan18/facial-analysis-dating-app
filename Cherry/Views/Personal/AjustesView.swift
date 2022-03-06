@@ -26,7 +26,7 @@ struct AjustesView: View {
             Divider()
             contrasenias
             botonGuardar
-            if vm.DEBUG{
+            if vm.showDebug{
                 ipView
             }
             
@@ -58,23 +58,23 @@ struct AjustesView: View {
     
     var correoView: some View {
         VStack{
-            SeccionTitulo("Correo Electrónico")
-            TextFieldPersonalizado(placeholder: "usuario@email.com", texto: $correo, sinAutocorrector: true, mayusculas: false)
+            SectionTitle("Correo Electrónico")
+            TextFieldCustom(placeholder: "usuario@email.com", text: $correo, disableAutocorrection: true, autocap: false)
         }.padding(.vertical)
     }
     
     var ipView: some View {
         VStack{
-            SeccionTitulo("IP")
-            TextFieldPersonalizado(placeholder: "", texto: $vm.urlapi, sinAutocorrector: true, mayusculas: false)
+            SectionTitle("IP")
+            TextFieldCustom(placeholder: "", text: $vm.apiURL, disableAutocorrection: true, autocap: false)
         }.padding(.vertical)
     }
     
     var contrasenias: some View {
         VStack{
-            SeccionTitulo("Cambiar Contraseña")
-            SecureFieldPersonalizado(placeholder: "Contraseña Nueva", texto: $contraseniaNueva)
-            SecureFieldPersonalizado(placeholder: "Confirmar Contraseña", texto: $contraseniaConfirmar)
+            SectionTitle("Cambiar Contraseña")
+            SecureFieldCustom(placeholder: "Contraseña Nueva", text: $contraseniaNueva)
+            SecureFieldCustom(placeholder: "Confirmar Contraseña", text: $contraseniaConfirmar)
         }.padding(.vertical)
     }
     
@@ -83,7 +83,7 @@ struct AjustesView: View {
             hideKeyboard()
             guardar()
         } label: {
-            BotonPersonalizado(texto: "Guardar", color: Color.accentColor)
+            ButtonCustom(text: "Guardar", color: Color.accentColor)
                 .disabled(!correo.contains("@"))
                 .disabled(!contraseniasValidas(contraseniaNueva, contraseniaConfirmar))
         }
@@ -101,7 +101,7 @@ struct AjustesView: View {
             hideKeyboard()
             alertaCerrarSesion = true
         } label: {
-            BotonPersonalizado(texto: "Cerrar Sesión", color: Color.orange)
+            ButtonCustom(text: "Cerrar Sesión", color: Color.orange)
         }
         .alert(isPresented: $alertaCerrarSesion) {
             Alert(
@@ -117,7 +117,7 @@ struct AjustesView: View {
                     Text("Cerrar Sesión"),
                     action: {
                         withAnimation(.spring()) {
-                            vm.cerrarSesion()
+                            vm.signOut()
                         }
                     }
                 )
@@ -130,7 +130,7 @@ struct AjustesView: View {
             hideKeyboard()
             alertaEliminar = true;
         } label: {
-            BotonPersonalizado(texto: "Eliminar Cuenta", color: Color.red)
+            ButtonCustom(text: "Eliminar Cuenta", color: Color.red)
         }
         .alert(isPresented: $alertaEliminar) {
             Alert(
@@ -145,7 +145,7 @@ struct AjustesView: View {
                 secondaryButton: .destructive(
                     Text("Eliminar"),
                     action: {
-                        vm.eliminarUsuarioActual()
+                        vm.deleteUserAccount()
                     }
                 )
             )

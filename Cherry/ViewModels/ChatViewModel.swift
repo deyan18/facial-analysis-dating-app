@@ -9,49 +9,47 @@ import Firebase
 import SwiftUI
 
 class ChatViewModel: ObservableObject {
-    // Chat
 
-    @Published var mensajes: [MensajeModel] = []
-    @Published var usuarioPrincipal: UsuarioModel?
-    @Published var usuarioSeleccionado: UsuarioModel?
+    @Published var messages: [MessageModel] = []
+    @Published var currentUser: UserModel?
+    @Published var selectedUser: UserModel?
+    private var messagesListener: ListenerRegistration?
 
-    func enviarMensaje(texto: String, fecha: Date) {
-        guard let emisorId = usuarioPrincipal?.uid else { return }
-        guard let receptorId = usuarioSeleccionado?.uid else { return }
+    func sendMessage(text: String, date: Date) {
+        guard let senderUID = currentUser?.uid else { return }
+        guard let receiverUID = selectedUser?.uid else { return }
 
-        let documento1 = FirebaseManager.shared.firestore.collection("mensajes").document(emisorId).collection(receptorId).document()
+        let docSender = FirebaseManager.shared.firestore.collection("mensajes").document(senderUID).collection(receiverUID).document()
 
-        let documento2 = FirebaseManager.shared.firestore.collection("mensajes").document(receptorId).collection(emisorId).document()
+        let docReceiver = FirebaseManager.shared.firestore.collection("mensajes").document(receiverUID).collection(senderUID).document()
 
-        let mensajeData1 = ["emisorId": emisorId, "receptorId": receptorId, "texto": texto, "fecha": fecha] as [String: Any]
-        let mensajeData2 = ["emisorId": emisorId, "receptorId": receptorId, "texto": texto, "fecha": fecha] as [String: Any]
+        let mensajeData1 = ["emisorId": senderUID, "receptorId": receiverUID, "texto": text, "fecha": date] as [String: Any]
+        let mensajeData2 = ["emisorId": senderUID, "receptorId": receiverUID, "texto": text, "fecha": date] as [String: Any]
 
-        documento1.setData(mensajeData1) { err in
+        docSender.setData(mensajeData1) { err in
             if let err = err {
-                print("Error enviando mensaje \(err)")
+                print("Error: \(err)")
                 return
             }
         }
 
-        documento2.setData(mensajeData2) { err in
+        docReceiver.setData(mensajeData2) { err in
             if let err = err {
-                print("Error enviando mensaje \(err)")
+                print("Error: \(err)")
                 return
             }
         }
 
-        guardarMensajeReciente(texto: texto, fecha: fecha)
+        saveRecentMessage(text: text, date: date)
     }
 
-    private var mensajesListener: ListenerRegistration?
+    func fetchMessages() {
+        guard let emisorId = currentUser?.uid else { return }
+        guard let receptorId = selectedUser?.uid else { return }
 
-    func updateMensajes() {
-        guard let emisorId = usuarioPrincipal?.uid else { return }
-        guard let receptorId = usuarioSeleccionado?.uid else { return }
+        messagesListener?.remove()
 
-        mensajesListener?.remove()
-
-        mensajesListener = FirebaseManager.shared.firestore
+        messagesListener = FirebaseManager.shared.firestore
             .collection("mensajes")
             .document(emisorId)
             .collection(receptorId)
@@ -61,91 +59,58 @@ class ChatViewModel: ObservableObject {
                     print("Error obteniendo mensajes \(err)")
                     return
                 }
-
-                querySnapshot?.documentChanges.forEach({ cambio in
-                    if cambio.type == .added {
-                        let data = cambio.document.data()
-                        self.mensajes.append(MensajeModel(data: data))
-                    }
-
-                })
-                /* querySnapshot?.documents.forEach({ queryDoc in
-                     let data = queryDoc.data()
-                     self.mensajes.append(MensajeModel(data: data))
-                 }) */
-            }
-    }
-
-    private var fetchMensajesListener: ListenerRegistration?
-
-    func fetchMensajes() {
-        guard let emisorId = usuarioPrincipal?.uid else { return }
-        guard let receptorId = usuarioSeleccionado?.uid else { return }
-
-        fetchMensajesListener?.remove()
-
-        FirebaseManager.shared.firestore
-            .collection("mensajes")
-            .document(emisorId)
-            .collection(receptorId)
-            .order(by: "fecha")
-            .addSnapshotListener { querySnapshot, err in
-                if let err = err {
-                    print("Error obteniendo mensajes \(err)")
-                    return
-                }
-                self.mensajes.removeAll()
+                self.messages.removeAll()
                 querySnapshot?.documents.forEach({ queryDoc in
                     let data = queryDoc.data()
-                    self.mensajes.append(MensajeModel(data: data))
+                    self.messages.append(MessageModel(data: data))
                 })
             }
     }
 
-    func guardarMensajeReciente(texto: String, fecha: Date) {
-        guard let emisorId = usuarioPrincipal?.uid else { return }
-        guard let receptorId = usuarioSeleccionado?.uid else { return }
+    func saveRecentMessage(text: String, date: Date) {
+        guard let senderUID = currentUser?.uid else { return }
+        guard let receiverUID = selectedUser?.uid else { return }
 
-        let documentoEmisor = FirebaseManager.shared.firestore
+        let docSender = FirebaseManager.shared.firestore
             .collection("recientes")
-            .document(emisorId)
+            .document(senderUID)
             .collection("mensajes")
-            .document(receptorId)
+            .document(receiverUID)
 
-        let documentoReceptor = FirebaseManager.shared.firestore
+        let docReceiver = FirebaseManager.shared.firestore
             .collection("recientes")
-            .document(receptorId)
+            .document(receiverUID)
             .collection("mensajes")
-            .document(emisorId)
+            .document(senderUID)
 
-        let datosEmisor = [
-            "texto": texto,
-            "fecha": fecha,
-            "emisorId": emisorId,
-            "receptorId": receptorId,
-            "urlFoto": usuarioSeleccionado?.url1 ?? "",
-            "nombre": usuarioSeleccionado?.nombre ?? "",
+        let dataSender = [
+            "texto": text,
+            "fecha": date,
+            "emisorId": senderUID,
+            "receptorId": receiverUID,
+            "urlFoto": selectedUser?.url1 ?? "",
+            "nombre": selectedUser?.name ?? "",
             "esLeido": true,
         ] as [String: Any]
 
-        let datosReceptor = [
-            "texto": texto,
-            "fecha": fecha,
-            "emisorId": emisorId,
-            "receptorId": receptorId,
-            "urlFoto": usuarioPrincipal?.url1 ?? "",
-            "nombre": usuarioPrincipal?.nombre ?? "",
+        let dataReceiver = [
+            "texto": text,
+            "fecha": date,
+            "emisorId": senderUID,
+            "receptorId": receiverUID,
+            "urlFoto": currentUser?.url1 ?? "",
+            "nombre": currentUser?.name ?? "",
             "esLeido": false,
         ] as [String: Any]
 
-        documentoEmisor.setData(datosEmisor) { err in
+        docSender.setData(dataSender) { err in
             if let err = err {
                 print("Error guardando en mensajes recientes: \(err)")
                 return
             }
         }
 
-        documentoReceptor.setData(datosReceptor) { err in
+        docReceiver.setData(dataReceiver) { err in
             if let err = err {
                 print("Error guardando en mensajes recientes: \(err)")
                 return
@@ -153,18 +118,18 @@ class ChatViewModel: ObservableObject {
         }
     }
 
-    func marcarComoLeido() {
-        guard let emisorId = usuarioPrincipal?.uid else { return }
-        guard let receptorId = usuarioSeleccionado?.uid else { return }
+    func markAsRead() {
+        guard let senderUID = currentUser?.uid else { return }
+        guard let receiverUID = selectedUser?.uid else { return }
 
-        let documento = FirebaseManager.shared.firestore
+        let doc = FirebaseManager.shared.firestore
             .collection("recientes")
-            .document(emisorId)
+            .document(senderUID)
             .collection("mensajes")
-            .document(receptorId)
-        let mensajeData = ["esLeido": true] as [String: Any]
+            .document(receiverUID)
+        let messageData = ["esLeido": true] as [String: Any]
 
-        documento.updateData(mensajeData)
+        doc.updateData(messageData)
     }
 }
 
