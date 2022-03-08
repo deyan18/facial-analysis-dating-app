@@ -44,7 +44,7 @@ struct PersonalView: View {
                     })
                     
                 )
-        }
+        }.navigationViewStyle(StackNavigationViewStyle())
     }
     
     

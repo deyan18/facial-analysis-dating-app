@@ -32,20 +32,22 @@ struct FiltroView: View {
             Divider()
             rangoEdad
             botonGuardar
-        }.padding()
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
-            .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
-            .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
-            .padding()
-            .onAppear {
+        }
+        .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 1 : 0.6))
+        .padding()
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
+        .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
+        .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
+        .padding()
+        .onAppear {
                 cargarDatos()
             }
     }
 
     
     private func cargarDatos(){
-        if vm.currentUser?.lookingForSimilar ?? true {
+        if vm.currentUser?.wantsSimilar ?? true {
             rasgos = "Similares"
         } else {
             rasgos = "Diferentes"
@@ -56,9 +58,9 @@ struct FiltroView: View {
     
     private func guardar(){
         if rasgos == "Similares" {
-            vm.currentUser?.lookingForSimilar = true
+            vm.currentUser?.wantsSimilar = true
         } else {
-            vm.currentUser?.lookingForSimilar = false
+            vm.currentUser?.wantsSimilar = false
         }
         vm.currentUser?.ageMin = min
         vm.currentUser?.ageMax = max

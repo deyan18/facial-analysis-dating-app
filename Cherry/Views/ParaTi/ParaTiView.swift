@@ -19,7 +19,15 @@ struct ParaTiView: View {
     @State var abrirPerfil: Bool = false // Para abrir sheet con el perfil de la persona
     @State var abrirChat = false // Para abrir chat cuando se pulsa el boton de chat o like desde el perfil de una persona
     // Para la lista de perfiles
-    let columns: [GridItem] = [
+    let columnsPhone: [GridItem] = [
+        GridItem(.flexible(), spacing: nil, alignment: nil),
+        GridItem(.flexible(), spacing: nil, alignment: nil),
+        GridItem(.flexible(), spacing: nil, alignment: nil),
+    ]
+    
+    let columnsPad: [GridItem] = [
+        GridItem(.flexible(), spacing: nil, alignment: nil),
+        GridItem(.flexible(), spacing: nil, alignment: nil),
         GridItem(.flexible(), spacing: nil, alignment: nil),
         GridItem(.flexible(), spacing: nil, alignment: nil),
         GridItem(.flexible(), spacing: nil, alignment: nil),
@@ -28,6 +36,7 @@ struct ParaTiView: View {
     var body: some View {
         NavigationView {
             ZStack {
+                
                 // Link para abrir un chat que se acciona desde un perfil
                 NavigationLink("", isActive: $abrirChat) {
                     ChatView()
@@ -40,7 +49,7 @@ struct ParaTiView: View {
                         personaMasRecomendada
                         listaPersonas
                     }
-                    .padding(.bottom, 40) // Para que no los ultimos no sean tapados por tabbar
+                    .padding(.bottom, UIDevice.isIPhone ? 40 : 85) // Para que no los ultimos no sean tapados por tabbar
                     .padding(.top, 70)
                 }
             }
@@ -56,7 +65,7 @@ struct ParaTiView: View {
                     message: Text("No se han podido ordenar las personas por rasgos faciales. Pulsa el logo para volver a intentarlo.")
                 )
             }
-        }
+        }.navigationViewStyle(StackNavigationViewStyle())
     }
     
     func cambioUbicacion() {
@@ -190,7 +199,7 @@ struct ParaTiView: View {
 
     // Lista con el resto de personas en usuariosCompatibles
     var listaPersonas: some View {
-        LazyVGrid(columns: columns) {
+        LazyVGrid(columns: UIDevice.isIPhone ? columnsPhone : columnsPad) {
             ForEach(vm.usersAnalyzed, id: \.self) { usuario in
                 if usuario.uid != vm.usersAnalyzed.first?.uid {
                     VStack {

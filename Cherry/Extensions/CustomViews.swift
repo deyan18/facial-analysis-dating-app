@@ -115,7 +115,7 @@ struct BigImageCircular: View {
         WebImage(url: URL(string: url))
             .resizable()
             .scaledToFill()
-            .frame(width: UIScreen.screenWidth * 0.9, height: UIScreen.screenWidth * 0.9)
+            .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.9 : 0.5) , height: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.9 : 0.5))
             .mask(Circle())
             .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
@@ -205,15 +205,15 @@ struct CustomBG: View {
         ZStack {
             AngularGradient(gradient: Gradient(colors: [Color("FondoAzul"), Color("FondoRosa"), Color("FondoAzul")]), center: center)
 
-            Circle().fill(Color("AccesorioAzul")).frame(width: 300, height: 300)
-                .offset(x: 140 + x1, y: 240 + y1)
+            Circle().fill(Color("AccesorioAzul")).frame(width: UIDevice.isIPhone ? 300 : 400, height: UIDevice.isIPhone ? 300 : 400)
+                .offset(x: (UIDevice.isIPhone ? 140 : 250) + x1, y: (UIDevice.isIPhone ? 240 : 300) + y1)
                 .shadow(color: Color("AccesorioAzul"), radius: 20)
 
-            Circle().fill(Color("AccesorioRosa")).frame(width: 200, height: 200)
-                .offset(x: -140 + x2, y: -40 + y2)
+            Circle().fill(Color("AccesorioRosa")).frame(width: UIDevice.isIPhone ? 200 : 300, height: UIDevice.isIPhone ? 200 : 300)
+                .offset(x: (UIDevice.isIPhone ? -140 : -250) + x2, y: (UIDevice.isIPhone ? -40 : -80) + y2)
                 .shadow(color: Color("AccesorioRosa"), radius: 20)
-            Circle().fill(Color("AccesorioMorado")).frame(width: 250, height: 250)
-                .offset(x: 80 + x3, y: -300 + y3)
+            Circle().fill(Color("AccesorioMorado")).frame(width: UIDevice.isIPhone ? 250 : 350, height: UIDevice.isIPhone ? 250 : 350)
+                .offset(x: (UIDevice.isIPhone ? 160 : 260) + x3, y: (UIDevice.isIPhone ? -300 : -340) + y3)
                 .shadow(color: Color("AccesorioMorado"), radius: 20)
         }.ignoresSafeArea()
             .onReceive(timer, perform: { _ in
@@ -323,6 +323,7 @@ struct AboutMeView: View {
                     .multilineTextAlignment(.center)
             }
         }
+        .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.8 : 0.6))
         .padding()
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: .black.opacity(0.07), radius: 3, x: -3, y: -3)
@@ -330,3 +331,112 @@ struct AboutMeView: View {
         .padding(.horizontal)
     }
 }
+
+struct TabBarCustom: View {
+    @EnvironmentObject var vm: MainViewModel
+
+    var tabBarElements = [TabBarElement(index: 0, text: "Para Ti", iconNormal: "house", iconSelected: "house.fill"),
+                           TabBarElement(index: 1, text: "Chats", iconNormal: "message", iconSelected: "message.fill"),
+                           TabBarElement(index: 2, text: "Perfil", iconNormal: "person", iconSelected: "person.fill")]
+
+    var body: some View {
+        HStack {
+            Spacer()
+            ForEach(tabBarElements, id: \.self) { element in
+                Button {
+                    withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
+                        vm.tabbarIndex = element.index
+                    }
+                } label: {
+                    VStack {
+                        if vm.tabbarIndex != element.index {
+                            tabBarIcon(nombreIcono: element.iconNormal)
+                        } else {
+                            ZStack{
+                                Circle().fill(Color.accentColor)
+                                    .blur(radius: 10)
+                                tabBarIcon(nombreIcono: element.iconSelected)
+                                    .overlay( // Barrita que aparece encima del icono
+                                        RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS)
+                                            .fill(Color.accentColor)
+                                            .frame(width: 13, height: 5)
+                                            .frame(maxHeight: .infinity, alignment: .top)
+                                            .offset(y: -6)
+                                    )
+                            }.frame(width: 30)
+                            
+                        }
+
+                        tabBarText(nombre: element.text)
+                    }.padding(.bottom, 4)
+                        
+                }
+                Spacer()
+            }
+        }
+        .padding(EdgeInsets(top: 15, leading: 0, bottom: 20, trailing: 0))
+        .frame(width: UIScreen.screenWidth, height: UIScreen.screenHeight * 0.08)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS, style: .continuous))
+        /*.background( // Circulo de color por detras
+            HStack {
+                Spacer()
+                ForEach(tabBarElements, id: \.self) { element in
+                            if vm.tabbarIndex == element.index {
+                               
+                                Circle().fill(Color.accentColor)
+                            }else{
+                                Circle().fill(Color.clear)
+
+                            }
+
+                    
+                    Spacer()
+                }
+            }
+           
+        )
+        
+        .overlay( // Barrita que aparece encima del icono
+            RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS)
+                .fill(Color.accentColor)
+                .frame(width: 28, height: 5)
+                .frame(width: 90)
+                .frame(maxHeight: .infinity, alignment: .top)
+                .offset(x: vm.tabbarIndex == 0 ? -103 : (vm.tabbarIndex == 1 ? 5 : +108))
+        )
+        .shadow(color: .black.opacity(0.06), radius: 5, x: -5, y: -5)
+        .shadow(color: .black.opacity(0.06), radius: 5, x: 5, y: 5)
+         */
+    }
+}
+
+
+struct tabBarIcon: View {
+    var nombreIcono: String
+
+    var body: some View {
+        Image(systemName: nombreIcono)
+            .resizable()
+            .frame(width: 27, height: 25)
+            .foregroundColor(Color.primary.opacity(ELEMENT_OPACITY))
+            
+    }
+}
+
+struct tabBarText: View {
+    var nombre: String
+
+    var body: some View {
+        Text(nombre)
+            .font(.caption)
+            .foregroundColor(Color.primary.opacity(ELEMENT_OPACITY))
+    }
+}
+
+struct TabBarElement: Hashable {
+    var index: Int
+    var text: String
+    var iconNormal: String
+    var iconSelected: String
+}
+

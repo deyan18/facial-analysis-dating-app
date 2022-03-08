@@ -35,7 +35,7 @@ struct AjustesView: View {
                 botonCerrarSesion
                 botonEliminarCuenta
             }
-            Spacer().frame(height: 50)
+            Spacer().frame(height: UIDevice.isIPhone ? 50 : 80)
         }
         .padding()
         .onTapGesture {

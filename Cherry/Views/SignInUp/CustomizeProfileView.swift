@@ -9,54 +9,51 @@ import Firebase
 import FirebaseFirestore
 import SwiftUI
 
-struct CrearPerfilView: View {
-    @Environment(\.defaultMinListRowHeight) var minRowHeight
+struct CustomizeProfileView: View {
     @EnvironmentObject var vm: MainViewModel
     @EnvironmentObject var lm: LocationManager
 
-    // Campos
-    @State var nombre = ""
-    @State var sobreMi = ""
+    @State var name = ""
+    @State var aboutMe = ""
 
     // Genero propio
-    @State private var generoSeleccionado = "Mujer"
-    var generos = ["Mujer", "Hombre", "No Binario"]
+    @State private var selectedGender = "Mujer"
+    var genders = ["Mujer", "Hombre", "No Binario"]
 
     // Genero busca
-    @State var generosBuscar: [GenderModel] = [GenderModel(gender: "Mujer"),
+    @State var lookingForOptions: [GenderModel] = [GenderModel(gender: "Mujer"),
                                                GenderModel(gender: "Hombre"),
                                                GenderModel(gender: "No Binario")]
-    @State var generosBuscarSeleccionados: [String] = []
+    @State var lookingFor: [String] = []
 
     // Edad
-    @State var fechaNacimiento: Date = Date()
+    @State var birthDate: Date = Date()
     // Limites del calendario
-    let fechaComienzo: Date = Calendar.current.date(from: DateComponents(year: 1920)) ?? Date()
-    let fechaFinal: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date())!
+    let calendarStart: Date = Calendar.current.date(from: DateComponents(year: 1920)) ?? Date()
+    let calendarEnd: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date())!
 
     // Fotos
-    @State var foto1: UIImage = UIImage(named: "Vacio")!
-    @State var foto2: UIImage = UIImage(named: "Vacio")!
-    @State var foto3: UIImage = UIImage(named: "Vacio")!
-    @State var fotoV: UIImage = UIImage(named: "Vacio")!
+    @State var img1: UIImage = UIImage(named: "Vacio")!
+    @State var img2: UIImage = UIImage(named: "Vacio")!
+    @State var img3: UIImage = UIImage(named: "Vacio")!
+    @State var imgV: UIImage = UIImage(named: "Vacio")!
     @State var url1 = ""
     @State var url2 = ""
     @State var url3 = ""
     @State var urlV = ""
-    var fotoEmpty: UIImage = UIImage(named: "Vacio")! // Para comparar si una foto se ha alterado
+    var imgEmpty: UIImage = UIImage(named: "Vacio")! // Para comparar si una foto se ha alterado
 
     // Atributos
-    @State var buscarAtributo = false
-    @State var atributoBusqueda = ""
-    @State var atributosSeleccionados: [String] = []
+    @State var searchAttributes = false
+    @State var searchAttributesField = ""
+    @State var selectedAttributes: [String] = []
 
     // Alertas
-    @State var alertFotoNoValida = false
-    @State var alertFaltanDatos = false
-    @State var apiErrorGuardar = false
+    @State var alertNoFaceDetected = false
+    @State var alertMissingFields = false
+    @State var alertApiError = false
 
-    // Cambio de vista
-    @State var iniciarSesion = false
+    @State var signIn = false
 
     var body: some View {
         ZStack{
@@ -64,30 +61,30 @@ struct CrearPerfilView: View {
             VStack {
                 header
                 Group {
-                    editarNombre
+                    nameField
                     Divider()
-                    editarDescripcion
+                    aboutMeField
                     Divider()
-                    edad
+                    ageField
                     Divider()
                 }
                 Group {
-                    generoPicker
+                    genderField
                     Divider()
-                    generoBusco
+                    lookingForView
                     Divider()
-                    fotos
+                    imagesView
                     Divider()
-                    fotoVerificar
+                    faceImageView
                 }
                 Divider()
-                atributosField
+                attributesView
                 Divider()
-                botonGuardar
+                saveButton
             }
             .padding()
         }
-        .frame(width: UIScreen.screenWidth * 0.9, height: UIScreen.screenHeight * 0.85)
+        .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.9 : 0.6), height: UIScreen.screenHeight * (UIDevice.isIPhone ? 0.85 : 0.7 ))
         .background(.ultraThinMaterial)
         .mask(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
         .onTapGesture {
@@ -95,9 +92,10 @@ struct CrearPerfilView: View {
         }
         .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
         .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
+        .padding(UIDevice.isIPhone ? 0 : 200)
         // Cuando todo se ha completado correctamente iniciamos sesion
-        .onChange(of: iniciarSesion) { _ in
-            if iniciarSesion {
+        .onChange(of: signIn) { _ in
+            if signIn {
                 vm.fetchCurrentUser()
                 vm.signedIn = true
             }
@@ -115,7 +113,7 @@ struct CrearPerfilView: View {
             }
             
             Spacer()
-                .alert(isPresented: $apiErrorGuardar) {
+                .alert(isPresented: $alertApiError) {
                     Alert(
                         title: Text("Problema con servidor"),
                         message: Text("Vuelve a intentarlo más tarde.")
@@ -129,7 +127,7 @@ struct CrearPerfilView: View {
             LogoSignIn()
             TitleText(texto: "Personaliza tu perfil")
                 .padding(.bottom, 20)
-        }.alert(isPresented: $alertFaltanDatos) {
+        }.alert(isPresented: $alertMissingFields) {
             Alert(
                 title: Text("Faltan Datos"),
                 message: Text("Asegurese que todos los campos están rellenos")
@@ -138,24 +136,24 @@ struct CrearPerfilView: View {
     }
 
     // Picker para elegir el genero propio
-    var generoBusco: some View {
+    var lookingForView: some View {
         VStack {
             SectionTitle("Busco")
             HStack(spacing: 20) {
-                ForEach(0 ..< generosBuscar.count) { index in
+                ForEach(0 ..< lookingForOptions.count) { index in
                     HStack {
                         Button(action: {
-                            generosBuscar[index].isSelected.toggle()
+                            lookingForOptions[index].isSelected.toggle()
                         }) {
                             HStack {
-                                if generosBuscar[index].isSelected {
+                                if lookingForOptions[index].isSelected {
                                     Image(systemName: "checkmark.circle.fill")
                                         .animation(.easeIn)
                                 } else {
                                     Image(systemName: "circle")
                                         .foregroundColor(.primary)
                                 }
-                                Text(generosBuscar[index].gender).foregroundColor(.primary)
+                                Text(lookingForOptions[index].gender).foregroundColor(.primary)
                                     .font(.callout)
                             }
                         }.buttonStyle(BorderlessButtonStyle())
@@ -166,20 +164,20 @@ struct CrearPerfilView: View {
         }.padding(.vertical)
     }
 
-    var fotos: some View {
+    var imagesView: some View {
         VStack {
             SectionTitle("Fotos")
             HStack {
-                UploadImageButton(image: $foto1)
+                UploadImageButton(image: $img1)
                 Spacer()
-                UploadImageButton(image: $foto2)
+                UploadImageButton(image: $img2)
                 Spacer()
-                UploadImageButton(image: $foto3)
+                UploadImageButton(image: $img3)
             }
         }.padding(.vertical)
     }
 
-    var fotoVerificar: some View {
+    var faceImageView: some View {
         HStack {
             VStack {
                 SectionTitle("Foto de cara")
@@ -187,7 +185,7 @@ struct CrearPerfilView: View {
                     Text("Esta foto no se mostrará en tu perfil.")
                         .font(.callout)
                     Spacer()
-                }.alert(isPresented: $alertFotoNoValida) {
+                }.alert(isPresented: $alertNoFaceDetected) {
                     Alert(
                         title: Text("Foto No Válida"),
                         message: Text("La foto de cara no es válida. Vuelva a probar con otra.")
@@ -195,38 +193,38 @@ struct CrearPerfilView: View {
                 }
             }
             Spacer()
-            UploadImageButton(image: $fotoV)
+            UploadImageButton(image: $imgV)
                 
 
         }.padding(.vertical)
         
     }
 
-    var editarNombre: some View {
+    var nameField: some View {
         VStack {
-            TextFieldCustom(placeholder: "Nombre y Apellidos", text: $nombre)
+            TextFieldCustom(placeholder: "Nombre y Apellidos", text: $name)
         }.padding(.vertical)
     }
 
-    var editarDescripcion: some View {
+    var aboutMeField: some View {
         VStack {
             SectionTitle("Sobre Mi")
-            TextEditorCustom(text: $sobreMi)
+            TextEditorCustom(text: $aboutMe)
         }.padding(.vertical)
     }
 
-    var edad: some View {
+    var ageField: some View {
         VStack {
             SectionTitle("Edad")
-            DatePicker("Fecha de Nacimiento", selection: $fechaNacimiento, in: fechaComienzo ... fechaFinal, displayedComponents: [.date])
+            DatePicker("Fecha de Nacimiento", selection: $birthDate, in: calendarStart ... calendarEnd, displayedComponents: [.date])
         }.padding(.vertical)
     }
 
-    var generoPicker: some View {
+    var genderField: some View {
         VStack {
             SectionTitle("Mi Genero")
-            Picker("Genero", selection: $generoSeleccionado) {
-                ForEach(generos, id: \.self) {
+            Picker("Genero", selection: $selectedGender) {
+                ForEach(genders, id: \.self) {
                     Text($0)
                 }
             }
@@ -234,16 +232,16 @@ struct CrearPerfilView: View {
         }.padding(.vertical)
     }
 
-    var atributosField: some View {
+    var attributesView: some View {
         VStack {
-            if !buscarAtributo {
+            if !searchAttributes {
                 SectionTitle("Atributos Disponibles")
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
                         HStack {
                             Button {
                                 withAnimation {
-                                    buscarAtributo.toggle()
+                                    searchAttributes.toggle()
                                 }
                             } label: {
                                 AttributeView(text: "Buscar", icon: "magnifyingglass.circle.fill")
@@ -267,7 +265,7 @@ struct CrearPerfilView: View {
                 //Vista de busqueda de atributo
                 Button {
                     withAnimation() {
-                        buscarAtributo.toggle()
+                        searchAttributes.toggle()
                     }
                 } label: {
                     HStack{
@@ -277,11 +275,11 @@ struct CrearPerfilView: View {
                     }
                 }
                 //Campo de busqueda
-                TextFieldCustom(placeholder: "Ej: Cantante", text: $atributoBusqueda)
+                TextFieldCustom(placeholder: "Ej: Cantante", text: $searchAttributesField)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
                         ForEach(vm.attributes.indices, id: \.self) { index in
-                            if !vm.attributes[index].isSelected && vm.attributes[index].text.lowercased().contains(atributoBusqueda.lowercased()) {
+                            if !vm.attributes[index].isSelected && vm.attributes[index].text.lowercased().contains(searchAttributesField.lowercased()) {
                                 Button {
                                     withAnimation {
                                         vm.attributes[index].isSelected = true
@@ -315,28 +313,28 @@ struct CrearPerfilView: View {
         }.padding(.vertical)
     }
 
-    var botonGuardar: some View {
+    var saveButton: some View {
         Button {
             // Pasamos los datos de los atributos y los generos a sus arrays correspondientes
-            atributosSeleccionados.removeAll()
+            selectedAttributes.removeAll()
             vm.attributes.forEach { a in
                 if a.isSelected {
-                    atributosSeleccionados.append(a.text)
+                    selectedAttributes.append(a.text)
                 }
             }
 
-            generosBuscarSeleccionados.removeAll()
-            generosBuscar.forEach { g in
+            lookingFor.removeAll()
+            lookingForOptions.forEach { g in
                 if g.isSelected {
-                    generosBuscarSeleccionados.append(g.gender)
+                    lookingFor.append(g.gender)
                 }
             }
 
-            if (nombre == "" || sobreMi == "" || atributosSeleccionados.isEmpty || generosBuscarSeleccionados.isEmpty || foto1 == fotoEmpty || foto2 == fotoEmpty || foto3 == fotoEmpty || fotoV == fotoEmpty) {
-                alertFaltanDatos = true
+            if (name == "" || aboutMe == "" || selectedAttributes.isEmpty || lookingFor.isEmpty || img1 == imgEmpty || img2 == imgEmpty || img3 == imgEmpty || imgV == imgEmpty) {
+                alertMissingFields = true
             } else {
                 vm.showLoadingView = true
-                guardarDatos()
+                save()
             }
 
         } label: {
@@ -346,7 +344,7 @@ struct CrearPerfilView: View {
         
     }
 
-    private func guardarDatos() {
+    private func save() {
         // Usamos dispatch para asegurarnos que las fotos se han subido antes de guardar el resto de los daots
         let dispatchGroup = DispatchGroup()
         let dispatchQueue = DispatchQueue(label: "any-label-name")
@@ -356,13 +354,13 @@ struct CrearPerfilView: View {
 
         // Path de las fotos
         let refFoto1 = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto1")
-        guard let foto1Data = foto1.jpegData(compressionQuality: 0.8) else { return }
+        guard let foto1Data = img1.jpegData(compressionQuality: 0.8) else { return }
         let refFoto2 = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto2")
-        guard let foto2Data = foto2.jpegData(compressionQuality: 0.8) else { return }
+        guard let foto2Data = img2.jpegData(compressionQuality: 0.8) else { return }
         let refFoto3 = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto3")
-        guard let foto3Data = foto3.jpegData(compressionQuality: 0.8) else { return }
+        guard let foto3Data = img3.jpegData(compressionQuality: 0.8) else { return }
         let refFotoV = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoV")
-        guard let fotoVData = fotoV.jpegData(compressionQuality: 0.8) else { return }
+        guard let fotoVData = imgV.jpegData(compressionQuality: 0.8) else { return }
 
         dispatchQueue.async {
             dispatchGroup.enter()
@@ -467,7 +465,7 @@ struct CrearPerfilView: View {
 
                     self.urlV = urlV?.absoluteString ?? ""
 
-                    validarFoto(url: self.urlV)
+                    validateImg(url: self.urlV)
 
                     if SHOW_DEBUG_CONSOLE {
                         print("Correcto url fotoV: \(urlV?.absoluteString ?? "")")
@@ -483,7 +481,7 @@ struct CrearPerfilView: View {
             DispatchQueue.main.async {
                 var userData: [String: Any]
 
-                userData = ["uid": uid, "nombre": nombre, "sobreMi": sobreMi, "genero": generoSeleccionado, "busco": generosBuscarSeleccionados, "url1": url1, "url2": url2, "url3": url3, "urlV": urlV, "fechaNacimiento": fechaNacimiento, "atributos": atributosSeleccionados, "ubicacion": GeoPoint(latitude: lm.lastLocation?.coordinate.latitude ?? 0.0, longitude: lm.lastLocation?.coordinate.longitude ?? 0.0)]
+                userData = ["uid": uid, "nombre": name, "sobreMi": aboutMe, "genero": selectedGender, "busco": lookingFor, "url1": url1, "url2": url2, "url3": url3, "urlV": urlV, "fechaNacimiento": birthDate, "atributos": selectedAttributes, "ubicacion": GeoPoint(latitude: lm.lastLocation?.coordinate.latitude ?? 0.0, longitude: lm.lastLocation?.coordinate.longitude ?? 0.0)]
 
                 FirebaseManager.shared.firestore.collection("usuarios")
                     .document(uid).setData(userData) { err in
@@ -501,7 +499,7 @@ struct CrearPerfilView: View {
         }
     }
 
-    func validarFoto(url: String) {
+    func validateImg(url: String) {
         let json = ["url": url]
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
@@ -516,7 +514,7 @@ struct CrearPerfilView: View {
             let task = URLSession.shared.dataTask(with: request as URLRequest) { data, _, error in
                 if error != nil {
                     DispatchQueue.main.async {
-                        apiErrorGuardar = true
+                        alertApiError = true
                         vm.showLoadingView = false
                     }
                     if SHOW_DEBUG_CONSOLE {
@@ -527,8 +525,8 @@ struct CrearPerfilView: View {
                 do {
                     let decoder = JSONDecoder()
                     let result = try decoder.decode(Bool.self, from: data!)
-                    self.alertFotoNoValida = !result
-                    self.iniciarSesion = result
+                    self.alertNoFaceDetected = !result
+                    self.signIn = result
                     if SHOW_DEBUG_CONSOLE {
                         print("Result -> \(result)")
                     }

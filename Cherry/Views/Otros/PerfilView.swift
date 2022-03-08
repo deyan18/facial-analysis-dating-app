@@ -36,7 +36,7 @@ struct PerfilView: View {
                 if esSheet {
                     botonAtras
                 }
-            }.frame(width: UIScreen.screenWidth, height: UIScreen.screenWidth)
+            }.frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 1 : 0.7) , height: UIScreen.screenWidth * (UIDevice.isIPhone ? 1 : 0.7))
 
             nombreEdad
 
@@ -46,6 +46,7 @@ struct PerfilView: View {
             AboutMeView(heading: "Sobre mi", text: usuario.aboutMe)
             atributos
             Spacer()
+                .frame(height: UIDevice.isIPhone ? 40 : 60)
         }.onAppear {
             cargarDatos()
         }
@@ -65,7 +66,7 @@ struct PerfilView: View {
                     WebImage(url: URL(string: url))
                         .resizable()
                         .scaledToFill()
-                        .frame(width: UIScreen.screenWidth * 0.9, height: UIScreen.screenWidth * 0.9)
+                        .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.9 : 0.6) , height: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.9 : 0.6))
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                 }
             }
@@ -90,7 +91,7 @@ struct PerfilView: View {
             }
 
             Spacer()
-        }.padding(30)
+        }.padding(UIDevice.isIPhone ? 30 : 50)
     }
 
     var nombreEdad: some View {

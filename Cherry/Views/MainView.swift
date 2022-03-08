@@ -37,7 +37,7 @@ struct MainView: View {
                 if !vm.hideTabBar {
                     VStack {
                         Spacer()
-                        TabViewPersonalizado()
+                        TabBarCustom()
                     }
                     .ignoresSafeArea(edges: .bottom)
                     .transition(.move(edge: .bottom))
@@ -50,7 +50,7 @@ struct MainView: View {
                 
                 // Para bloquear el acceso a la app si el acceso a la ubicacion esta deshabilitado
                 if(lm.statusString == "denied"){
-                    AvisoUbicacion()
+                    LocationCustomAlert()
                 }
                     
                 
@@ -61,14 +61,14 @@ struct MainView: View {
                 
             }
         } else {
-            LoginView()
+            SignInView()
                 .transition(AnyTransition.downSlide) // Cuando pasamos del login a la pantalla principal
                 
         }
     }
 }
 
-struct AvisoUbicacion: View {
+struct LocationCustomAlert: View {
     var body: some View {
         Color.black.opacity(0.6).ignoresSafeArea()
         VStack {
@@ -89,82 +89,3 @@ struct AvisoUbicacion: View {
 }
 
 
-struct TabViewPersonalizado: View {
-    @EnvironmentObject var vm: MainViewModel
-
-    var elementosTabbar = [ElementoTabbar(indice: 0, nombre: "Para Ti", iconoNormal: "house", iconoSeleccionado: "house.fill"),
-                           ElementoTabbar(indice: 1, nombre: "Chats", iconoNormal: "message", iconoSeleccionado: "message.fill"),
-                           ElementoTabbar(indice: 2, nombre: "Perfil", iconoNormal: "person", iconoSeleccionado: "person.fill")]
-
-    var body: some View {
-        // Cuadro tabbar
-        HStack {
-            Spacer()
-            ForEach(elementosTabbar, id: \.self) { elemento in
-                // Cada boton del tabbar
-                Button {
-                    withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
-                        vm.tabbarIndex = elemento.indice
-                    }
-                } label: {
-                    VStack {
-                        // Si no esta seleccionado se muestra el icono normal, si lo esta se muestra el relelno
-                        if vm.tabbarIndex != elemento.indice {
-                            IconoTabbar(nombreIcono: elemento.iconoNormal)
-                        } else {
-                            IconoTabbar(nombreIcono: elemento.iconoSeleccionado)
-                        }
-
-                        TextoTabbar(nombre: elemento.nombre)
-                    }.padding(.bottom, 4)
-                }
-                Spacer()
-            }
-        }
-        .padding(EdgeInsets(top: 15, leading: 0, bottom: 20, trailing: 0))
-        .frame(width: UIScreen.screenWidth, height: UIScreen.screenHeight * 0.08)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS, style: .continuous))
-        .background( // Circulo de color por detras
-            Circle().fill(Color.accentColor).frame(width: 90)
-                .offset(x: vm.tabbarIndex == 0 ? -103 : (vm.tabbarIndex == 1 ? 5 : +108))
-        )
-        .overlay( // Barrita que aparece encima del icono
-            RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS)
-                .fill(Color.accentColor)
-                .frame(width: 28, height: 5)
-                .frame(width: 90)
-                .frame(maxHeight: .infinity, alignment: .top)
-                .offset(x: vm.tabbarIndex == 0 ? -103 : (vm.tabbarIndex == 1 ? 5 : +108))
-        )
-        .shadow(color: .black.opacity(0.06), radius: 5, x: -5, y: -5)
-        .shadow(color: .black.opacity(0.06), radius: 5, x: 5, y: 5)
-    }
-}
-
-struct IconoTabbar: View {
-    var nombreIcono: String
-
-    var body: some View {
-        Image(systemName: nombreIcono)
-            .resizable()
-            .frame(width: 27, height: 25)
-            .foregroundColor(Color.primary.opacity(ELEMENT_OPACITY))
-    }
-}
-
-struct TextoTabbar: View {
-    var nombre: String
-
-    var body: some View {
-        Text(nombre)
-            .font(.caption)
-            .foregroundColor(Color.primary.opacity(ELEMENT_OPACITY))
-    }
-}
-
-struct ElementoTabbar: Hashable {
-    var indice: Int
-    var nombre: String
-    var iconoNormal: String
-    var iconoSeleccionado: String
-}

@@ -129,7 +129,7 @@ class MainViewModel: ObservableObject {
 
     private func sortUsers() {
         DispatchQueue.main.async {
-            if self.currentUser?.lookingForSimilar ?? true {
+            if self.currentUser?.wantsSimilar ?? true {
                 self.usersAnalyzed = self.usersAnalyzed.sorted(by: { $0.distanceFeatures < $1.distanceFeatures })
             } else {
                 self.usersAnalyzed = self.usersAnalyzed.sorted(by: { $0.distanceFeatures > $1.distanceFeatures })
@@ -331,7 +331,7 @@ class MainViewModel: ObservableObject {
 
     func updateFeaturesPreference() {
         guard let uid = currentUser?.uid else { return }
-        let data = ["buscaSimilar": currentUser?.lookingForSimilar]
+        let data = ["buscaSimilar": currentUser?.wantsSimilar]
         FirebaseManager.shared.firestore.collection("usuarios").document(uid).updateData(data as [String: Any])
     }
 }

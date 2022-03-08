@@ -23,7 +23,7 @@ struct UserModel: Hashable, Identifiable {
     var ageMax: Int
     var distanceFeatures: Double = -1.0
     var urls: [String] = []
-    var lookingForSimilar: Bool = true
+    var wantsSimilar: Bool = true
     init(data: [String: Any]){
         self.uid = data["uid"] as? String ?? ""
         self.name = data["nombre"] as? String ?? ""
@@ -46,7 +46,7 @@ struct UserModel: Hashable, Identifiable {
         self.ageMin = data["edadMin"] as? Int ?? 18
         self.ageMax = data["edadMax"] as? Int ?? 99
         self.urls = [url1, url2, url3]
-        self.lookingForSimilar = data["buscaSimilar"] as? Bool ?? true
+        self.wantsSimilar = data["buscaSimilar"] as? Bool ?? true
     }
     
     

@@ -19,14 +19,14 @@
 		337F7836270CDAE700BEF2AE /* ChatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337F7835270CDAE700BEF2AE /* ChatsView.swift */; };
 		337F7838270CDB4B00BEF2AE /* PersonalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337F7837270CDB4B00BEF2AE /* PersonalView.swift */; };
 		339A4909271D6E14003D85BA /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 339A4908271D6E14003D85BA /* ChatView.swift */; };
-		33A843252728A20800591A4F /* RegistrarseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A843232728A20800591A4F /* RegistrarseView.swift */; };
-		33A843262728A20800591A4F /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A843242728A20800591A4F /* LoginView.swift */; };
+		33A843252728A20800591A4F /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A843232728A20800591A4F /* SignUpView.swift */; };
+		33A843262728A20800591A4F /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A843242728A20800591A4F /* SignInView.swift */; };
 		33CF63902711F24F0047AC6D /* AjustesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CF638F2711F24F0047AC6D /* AjustesView.swift */; };
 		33CF639227120B5C0047AC6D /* EditarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CF639127120B5C0047AC6D /* EditarView.swift */; };
 		33EF1600270EFC95004F38AE /* FilaChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EF15FF270EFC95004F38AE /* FilaChatView.swift */; };
 		8B087C4027A0295100303C10 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B087C3F27A0295100303C10 /* Models.swift */; };
 		8B57E62D27B008170079C128 /* FiltroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B57E62C27B008170079C128 /* FiltroView.swift */; };
-		8B58E2E52791E81000CDB956 /* CrearPerfilView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B58E2E42791E81000CDB956 /* CrearPerfilView.swift */; };
+		8B58E2E52791E81000CDB956 /* CustomizeProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B58E2E42791E81000CDB956 /* CustomizeProfileView.swift */; };
 		8B5947522782314800D64BEC /* WrappingStack in Frameworks */ = {isa = PBXBuildFile; productRef = 8B5947512782314800D64BEC /* WrappingStack */; };
 		8B6C213A27A56FE800BB5837 /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B6C213927A56FE800BB5837 /* MainViewModel.swift */; };
 		8B6C213C27A5707C00BB5837 /* FirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B6C213B27A5707C00BB5837 /* FirebaseManager.swift */; };
@@ -36,7 +36,6 @@
 		8B75D66827B96BB1000C7970 /* GlobalVariables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B75D66727B96BB1000C7970 /* GlobalVariables.swift */; };
 		8B75D66A27B96BD4000C7970 /* AnyTransitionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B75D66927B96BD4000C7970 /* AnyTransitionExtension.swift */; };
 		8B83ED0127BD5E8300066C60 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B83ED0027BD5E8300066C60 /* ColorExtension.swift */; };
-		8B83ED0527BD7EF500066C60 /* OlvidadaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B83ED0427BD7EF500066C60 /* OlvidadaView.swift */; };
 		8B957AA027C6999F00154B9C /* ManualUsuarioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B957A9F27C6999F00154B9C /* ManualUsuarioView.swift */; };
 		8BAAD7FC27A3080600179A9D /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8BAAD7FB27A3080600179A9D /* GoogleService-Info.plist */; };
 		8BAAD7FF27A31B1300179A9D /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8BAAD7FE27A31B1300179A9D /* FirebaseAuth */; };
@@ -85,14 +84,14 @@
 		337F7835270CDAE700BEF2AE /* ChatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsView.swift; sourceTree = "<group>"; };
 		337F7837270CDB4B00BEF2AE /* PersonalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalView.swift; sourceTree = "<group>"; };
 		339A4908271D6E14003D85BA /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
-		33A843232728A20800591A4F /* RegistrarseView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegistrarseView.swift; sourceTree = "<group>"; };
-		33A843242728A20800591A4F /* LoginView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		33A843232728A20800591A4F /* SignUpView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
+		33A843242728A20800591A4F /* SignInView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		33CF638F2711F24F0047AC6D /* AjustesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AjustesView.swift; sourceTree = "<group>"; };
 		33CF639127120B5C0047AC6D /* EditarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditarView.swift; sourceTree = "<group>"; };
 		33EF15FF270EFC95004F38AE /* FilaChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilaChatView.swift; sourceTree = "<group>"; };
 		8B087C3F27A0295100303C10 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		8B57E62C27B008170079C128 /* FiltroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FiltroView.swift; sourceTree = "<group>"; };
-		8B58E2E42791E81000CDB956 /* CrearPerfilView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrearPerfilView.swift; sourceTree = "<group>"; };
+		8B58E2E42791E81000CDB956 /* CustomizeProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeProfileView.swift; sourceTree = "<group>"; };
 		8B6C213927A56FE800BB5837 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		8B6C213B27A5707C00BB5837 /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
 		8B75D66327B96B69000C7970 /* ScreenExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenExtension.swift; sourceTree = "<group>"; };
@@ -100,7 +99,6 @@
 		8B75D66727B96BB1000C7970 /* GlobalVariables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalVariables.swift; sourceTree = "<group>"; };
 		8B75D66927B96BD4000C7970 /* AnyTransitionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyTransitionExtension.swift; sourceTree = "<group>"; };
 		8B83ED0027BD5E8300066C60 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
-		8B83ED0427BD7EF500066C60 /* OlvidadaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OlvidadaView.swift; sourceTree = "<group>"; };
 		8B957A9F27C6999F00154B9C /* ManualUsuarioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualUsuarioView.swift; sourceTree = "<group>"; };
 		8BAAD7FB27A3080600179A9D /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		8BB4FF1D27BE573200D2116C /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
@@ -206,7 +204,7 @@
 			isa = PBXGroup;
 			children = (
 				8B957A9E27C6996000154B9C /* Otros */,
-				33A843222728A1F400591A4F /* Login */,
+				33A843222728A1F400591A4F /* SignInUp */,
 				33EF15FE270EF8B0004F38AE /* Personal */,
 				33EF15FD270EF8A5004F38AE /* Chats */,
 				33EF15FC270EF887004F38AE /* ParaTi */,
@@ -234,15 +232,14 @@
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
-		33A843222728A1F400591A4F /* Login */ = {
+		33A843222728A1F400591A4F /* SignInUp */ = {
 			isa = PBXGroup;
 			children = (
-				33A843242728A20800591A4F /* LoginView.swift */,
-				33A843232728A20800591A4F /* RegistrarseView.swift */,
-				8B58E2E42791E81000CDB956 /* CrearPerfilView.swift */,
-				8B83ED0427BD7EF500066C60 /* OlvidadaView.swift */,
+				33A843242728A20800591A4F /* SignInView.swift */,
+				33A843232728A20800591A4F /* SignUpView.swift */,
+				8B58E2E42791E81000CDB956 /* CustomizeProfileView.swift */,
 			);
-			path = Login;
+			path = SignInUp;
 			sourceTree = "<group>";
 		};
 		33EF15FC270EF887004F38AE /* ParaTi */ = {
@@ -450,17 +447,16 @@
 				8B087C4027A0295100303C10 /* Models.swift in Sources */,
 				33CF639227120B5C0047AC6D /* EditarView.swift in Sources */,
 				8B57E62D27B008170079C128 /* FiltroView.swift in Sources */,
-				8B58E2E52791E81000CDB956 /* CrearPerfilView.swift in Sources */,
+				8B58E2E52791E81000CDB956 /* CustomizeProfileView.swift in Sources */,
 				33CF63902711F24F0047AC6D /* AjustesView.swift in Sources */,
 				8B75D66427B96B69000C7970 /* ScreenExtension.swift in Sources */,
-				33A843252728A20800591A4F /* RegistrarseView.swift in Sources */,
+				33A843252728A20800591A4F /* SignUpView.swift in Sources */,
 				33EF1600270EFC95004F38AE /* FilaChatView.swift in Sources */,
 				339A4909271D6E14003D85BA /* ChatView.swift in Sources */,
 				8B75D66A27B96BD4000C7970 /* AnyTransitionExtension.swift in Sources */,
-				8B83ED0527BD7EF500066C60 /* OlvidadaView.swift in Sources */,
 				8B6C213A27A56FE800BB5837 /* MainViewModel.swift in Sources */,
 				334E02862704917C005E2B8E /* MainView.swift in Sources */,
-				33A843262728A20800591A4F /* LoginView.swift in Sources */,
+				33A843262728A20800591A4F /* SignInView.swift in Sources */,
 				337F7838270CDB4B00BEF2AE /* PersonalView.swift in Sources */,
 				3368CE122700F690007749B6 /* PerfilView.swift in Sources */,
 				8BB52A8927B451E4003A9196 /* ImagePicker.swift in Sources */,

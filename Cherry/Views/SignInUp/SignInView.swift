@@ -11,25 +11,24 @@ import Firebase
 import SwiftUI
 import UIKit
 
-struct LoginView: View {
+struct SignInView: View {
     @EnvironmentObject var vm: MainViewModel
-    //@EnvironmentObject var lm: LocationManager
 
     // Datos de los campos
-    @State var correo: String = ""
-    @State var contrasenia: String = ""
+    @State var email: String = ""
+    @State var password: String = ""
 
     // Alertas
-    @State var alertProblemaLogin = false // Mostrar aviso de datos incorrectos
-    @State var alertOlvidadaCorrecto = false
-    @State var alertProblemaOlvidada = false
+    @State var alertSignInError = false // Mostrar aviso de datos incorrectos
+    @State var alertPassRecCorrect = false
+    @State var alertPassRecError = false
     
     // Cambio de vista
-    @State var mostrarRegistrar = false // Abrir vista registrar / Volver login
-    @State var mostrarOlvidada = false
+    @State var openSignUp = false // Abrir vista registrar / Volver login
+    @State var openPassRec = false
     
     //Toggle
-    @State var abrirManualUsuario = false
+    @State var openUserManual = false
 
     var body: some View {
         ZStack {
@@ -38,12 +37,12 @@ struct LoginView: View {
                     hideKeyboard()
                 }
             if(vm.showUserManualButton){
-            botonManualUsuario
+            userManualButton
             }
-            if mostrarRegistrar {
-                RegistrarseView(mostrarRegistrar: $mostrarRegistrar)
+            if openSignUp {
+                SignUpView(openSignUp: $openSignUp)
                     .transition(AnyTransition.backslide)
-                    .zIndex(1) // Para ponerlo por encima (creo, si lo quito va mal...)
+                    .zIndex(1)
             } else {
                 VStack {
                     VStack {
@@ -51,23 +50,23 @@ struct LoginView: View {
                         LogoSignIn()
                             .offset(y: 30)
                             .onTapGesture {
-                                correo = "alina@ual.es"
-                                contrasenia = "123456"
+                                email = "alina@ual.es"
+                                password = "123456"
                             }
                         
 
-                        if(mostrarOlvidada){
-                            elementosOlvidada
+                        if(openPassRec){
+                            passRecoveryElements
                                 
                         }else{
-                            elementosLogin
+                            signInElements
                         }
                         
                     }
                     .padding()
                     .navigationBarHidden(true)
                 }
-                .frame(width: UIScreen.screenWidth * 0.8, height: UIScreen.screenHeight * 0.65)
+                .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.8 : 0.45), height: UIScreen.screenHeight * (UIDevice.isIPhone ? 0.65 : 0.5 ))
                 .background(.ultraThinMaterial)
                 .mask(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
                 .onTapGesture {
@@ -75,7 +74,7 @@ struct LoginView: View {
                 }
                 .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
                 .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
-                .padding(40)
+                .padding(UIDevice.isIPhone ? 40 : 200)
                 .transition(AnyTransition.slide)
                 
             }
@@ -86,13 +85,13 @@ struct LoginView: View {
         }
     }
     
-    var botonManualUsuario: some View{
+    var userManualButton: some View{
             VStack{
                 Spacer()
                 HStack{
                     Button {
                         withAnimation {
-                            abrirManualUsuario.toggle()
+                            openUserManual.toggle()
                         }
                     } label: {
                         Image(systemName: "info")
@@ -104,7 +103,7 @@ struct LoginView: View {
                     
                     Spacer()
                 }
-                .sheet(isPresented: $abrirManualUsuario) {
+                .sheet(isPresented: $openUserManual) {
                     
                 } content: {
                     ManualUsuarioView()
@@ -116,15 +115,15 @@ struct LoginView: View {
     }
 
     
-    var elementosOlvidada: some View{
+    var passRecoveryElements: some View{
         VStack{
             TitleText(texto: "Recuperar Cuenta")
                 .padding(.bottom, 20)
-            TextFieldCustom(placeholder: "Correo Electrónico", text: $correo, disableAutocorrection: true, autocap: false)
-            botonRestaurar
+            TextFieldCustom(placeholder: "Correo Electrónico", text: $email, disableAutocorrection: true, autocap: false)
+            passRecButton
             Spacer()
-            botonVolver
-                .alert(isPresented: $alertProblemaOlvidada) {
+            passRecBackButton
+                .alert(isPresented: $alertPassRecError) {
                     Alert(
                         title: Text("Error Credenciales"),
                         message: Text("El correo es incorrecto.")
@@ -133,19 +132,19 @@ struct LoginView: View {
         }
     }
     
-    var elementosLogin: some View{
+    var signInElements: some View{
         VStack{
             TitleText(texto: "Iniciar Sesión")
                 .padding(.bottom, 20)
             // Campos de texto
-            TextFieldCustom(placeholder: "Correo Electrónico", text: $correo, disableAutocorrection: true, autocap: false)
-            SecureFieldCustom(placeholder: "Contraseña", text: $contrasenia)
+            TextFieldCustom(placeholder: "Correo Electrónico", text: $email, disableAutocorrection: true, autocap: false)
+            SecureFieldCustom(placeholder: "Contraseña", text: $password)
             // Botones
-            botonDatosOlvidados
-            botonIniciarSesion
+            passRecOpenButton
+            signInButton
             Spacer()
-            botonRegistrarse
-                .alert(isPresented: $alertProblemaLogin) {
+            signUpButton
+                .alert(isPresented: $alertSignInError) {
                     Alert(
                         title: Text("Error Login"),
                         message: Text("El usuario o la contraseña son incorrectos.")
@@ -155,31 +154,31 @@ struct LoginView: View {
     }
 
     
-    var botonRestaurar: some View {
+    var passRecButton: some View {
         Button {
             hideKeyboard()
-            if(correo != ""){
-                restaurarContrasenia()
+            if(email != ""){
+                recoverPasword()
             }
         } label: {
             ButtonCustom(text: "Continuar", color: Color.accentColor)
                 .padding(.top)
         }
-        .disabled(correo != "" && !correo.contains("@"))
-        .alert(isPresented: $alertOlvidadaCorrecto) {
+        .disabled(email != "" && !email.contains("@"))
+        .alert(isPresented: $alertPassRecCorrect) {
             Alert(
                 title: Text("Correo Enviado"),
                 message: Text("Se ha enviado un link para restaurar la contraseña a su email"),
-                dismissButton: .default(Text("OK"), action: { mostrarOlvidada = false})
+                dismissButton: .default(Text("OK"), action: { openPassRec = false})
             )
         }
     }
     
-    var botonVolver: some View {
+    var passRecBackButton: some View {
         Button {
             hideKeyboard()
             withAnimation {
-                mostrarOlvidada = false
+                openPassRec = false
 
             }
         } label: {
@@ -189,24 +188,24 @@ struct LoginView: View {
         }
     }
     
-    private func restaurarContrasenia(){
-        FirebaseManager.shared.auth.sendPasswordReset(withEmail: correo) { err in
+    private func recoverPasword(){
+        FirebaseManager.shared.auth.sendPasswordReset(withEmail: email) { err in
             if let err = err{
                 print("Error restaurando contraseña: \(err)")
-                alertProblemaOlvidada = true
+                alertPassRecError = true
                 return
             }
-            alertOlvidadaCorrecto = true
+            alertPassRecCorrect = true
 
         }
     }
 
-    var botonDatosOlvidados: some View {
+    var passRecOpenButton: some View {
         // Boton Contrasenia olvidada
         Button {
             hideKeyboard()
             withAnimation {
-                mostrarOlvidada = true
+                openPassRec = true
             }
         } label: {
             Text("¿Has olvidado tu contraseña?")
@@ -216,25 +215,25 @@ struct LoginView: View {
         .padding(.bottom, 40)
     }
 
-    var botonIniciarSesion: some View {
+    var signInButton: some View {
         Button {
             hideKeyboard()
-            if correo != "" && contrasenia != "" {
-                loginUsuario()
+            if email != "" && password != "" {
+                signIn()
             }
         } label: {
             ButtonCustom(text: "Iniciar Sesión", color: Color.accentColor)
                 .frame(height: 20)
         }
-        .disabled(correo != "" && !correo.contains("@"))
-        .disabled(correo != "" && contrasenia.count < 6)
+        .disabled(email != "" && !email.contains("@"))
+        .disabled(email != "" && password.count < 6)
     }
 
-    var botonRegistrarse: some View {
+    var signUpButton: some View {
         Button {
             hideKeyboard()
             withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
-                mostrarRegistrar.toggle()
+                openSignUp.toggle()
             }
         } label: {
             Text("¿No tienes cuenta?")
@@ -245,10 +244,10 @@ struct LoginView: View {
         }.padding(.top, 20)
     }
 
-    private func loginUsuario() {
-        FirebaseManager.shared.auth.signIn(withEmail: correo, password: contrasenia) { result, err in
+    private func signIn() {
+        FirebaseManager.shared.auth.signIn(withEmail: email, password: password) { result, err in
             if let err = err {
-                alertProblemaLogin = true
+                alertSignInError = true
                 if SHOW_DEBUG_CONSOLE {
                     print("Error Login: ", err)
                 }
@@ -258,8 +257,8 @@ struct LoginView: View {
             if SHOW_DEBUG_CONSOLE {
                 print("Login Correcto: \(result?.user.uid ?? "")")
             }
-            correo = ""
-            contrasenia = ""
+            email = ""
+            password = ""
             vm.tabbarIndex = 0
             vm.fetchCurrentUser() // Cargamos el usuario actual
 

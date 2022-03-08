@@ -8,44 +8,42 @@
 import Firebase
 import SwiftUI
 
-struct RegistrarseView: View {
-    // Datos de los campos
-    @State var correo: String = ""
-    @State var contrasenia: String = ""
-    @State var confirmar: String = ""
+struct SignUpView: View {
+    @State var email: String = ""
+    @State var password: String = ""
+    @State var passwordConfirm: String = ""
 
-    @State var alertProblemaRegistro = false // Mostrar aviso de que el correo ya existe
+    @State var alertSignUpError = false
 
-    // Cambio de vista
-    @Binding var mostrarRegistrar: Bool // Abrir vista registrar / Volver a login
-    @State var mostrarCrearPerfil: Bool = false // Abrir vista crear perfil
+    @Binding var openSignUp: Bool
+    @State var openCustomizeProfile: Bool = false
 
     var body: some View {
-        if mostrarCrearPerfil {
-            CrearPerfilView()
+        if openCustomizeProfile {
+            CustomizeProfileView()
                 .transition(AnyTransition.backslide)
                 .zIndex(1)
         } else {
             VStack {
                 VStack {
                     // Header
-                    botonAtras
+                    backButton
                     Spacer()
                     LogoSignIn()
                     TitleText(texto: "Registrarse")
                         .padding(.bottom, 20)
 
                     // Campos de texto
-                    TextFieldCustom(placeholder: "Correo Electrónico", text: $correo, disableAutocorrection: true, autocap: false)
-                    SecureFieldCustom(placeholder: "Contraseña", text: $contrasenia)
-                    SecureFieldCustom(placeholder: "Confirmar Contraseña", text: $confirmar)
+                    TextFieldCustom(placeholder: "Correo Electrónico", text: $email, disableAutocorrection: true, autocap: false)
+                    SecureFieldCustom(placeholder: "Contraseña", text: $password)
+                    SecureFieldCustom(placeholder: "Confirmar Contraseña", text: $passwordConfirm)
                     Spacer()
 
-                    botonRegistrarse
+                    signUpButton
                     Spacer()
                 }.padding()
             }
-            .frame(width: UIScreen.screenWidth * 0.8, height: UIScreen.screenHeight * 0.7)
+            .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.8 : 0.45), height: UIScreen.screenHeight * (UIDevice.isIPhone ? 0.7 : 0.6 ))
             .background(.ultraThinMaterial)
             .mask(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
             .onTapGesture {
@@ -53,16 +51,17 @@ struct RegistrarseView: View {
             }
             .shadow(color: .black.opacity(0.1), radius: 5, x: -5, y: -5)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
-            .padding(40)
+            .padding(UIDevice.isIPhone ? 40 : 200)
+            
         }
     }
 
-    var botonAtras: some View {
+    var backButton: some View {
         HStack {
             Button {
                 hideKeyboard()
                 withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
-                    mostrarRegistrar = false
+                    openSignUp = false
                 }
             } label: {
                 Image(systemName: "arrow.backward")
@@ -76,24 +75,24 @@ struct RegistrarseView: View {
         }
     }
 
-    var botonRegistrarse: some View {
+    var signUpButton: some View {
         Button {
             hideKeyboard()
             // Comprobar que los datos son correctos
-            if correo != "" && contrasenia != "" && confirmar != "" {
-                registrarUsuario()
+            if email != "" && password != "" && passwordConfirm != "" {
+                signUp()
             }
         } label: {
             ButtonCustom(text: "Registrarse", color: Color.accentColor)
                 .padding(.top, 20)
                 
         }
-        .disabled(correo != "" && !correo.contains("@"))
-        .disabled(correo != "" && contrasenia.count < 6)
-        .disabled(contrasenia != confirmar)
-        .disabled(contrasenia.count != confirmar.count)
+        .disabled(email != "" && !email.contains("@"))
+        .disabled(email != "" && password.count < 6)
+        .disabled(password != passwordConfirm)
+        .disabled(password.count != passwordConfirm.count)
     // Para que el boton este deshabilitado solo cuando se empiece a escribir
-        .alert(isPresented: $alertProblemaRegistro) {
+        .alert(isPresented: $alertSignUpError) {
             Alert(
                 title: Text("Error Registro"),
                 message: Text("Este correo ya se encuantra registrado")
@@ -101,11 +100,10 @@ struct RegistrarseView: View {
         }
     }
 
-    // Registra al usuario SOLO con el correo y la contrasenia
-    private func registrarUsuario() {
-        FirebaseManager.shared.auth.createUser(withEmail: correo, password: contrasenia) { result, err in
+    private func signUp() {
+        FirebaseManager.shared.auth.createUser(withEmail: email, password: password) { result, err in
             if let err = err {
-                alertProblemaRegistro = true
+                alertSignUpError = true
                 if SHOW_DEBUG_CONSOLE {
                     print("Error Registro: ", err)
                 }
@@ -116,7 +114,7 @@ struct RegistrarseView: View {
             }
 
             // Hacemos login
-            FirebaseManager.shared.auth.signIn(withEmail: correo, password: contrasenia) { _, err in
+            FirebaseManager.shared.auth.signIn(withEmail: email, password: password) { _, err in
                 if let err = err {
                     if SHOW_DEBUG_CONSOLE {
                         print("Error Login: ", err)
@@ -125,7 +123,7 @@ struct RegistrarseView: View {
                 }
 
                 withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
-                    mostrarCrearPerfil.toggle()
+                    openCustomizeProfile.toggle()
                 }
             }
         }

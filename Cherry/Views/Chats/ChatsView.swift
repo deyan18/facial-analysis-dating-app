@@ -44,6 +44,6 @@ struct ChatsView: View {
                     vm.hideTabBar = false
                 }
             }.navigationBarTitleDisplayMode(.inline)
-        }
+        }.navigationViewStyle(StackNavigationViewStyle())
     }
 }
