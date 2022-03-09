@@ -16,19 +16,17 @@ struct CustomizeProfileView: View {
     @State var name = ""
     @State var aboutMe = ""
 
-    // Genero propio
+    // Genders
     @State private var selectedGender = "Mujer"
     var genders = ["Mujer", "Hombre", "No Binario"]
 
-    // Genero busca
     @State var lookingForOptions: [GenderModel] = [GenderModel(gender: "Mujer"),
                                                GenderModel(gender: "Hombre"),
                                                GenderModel(gender: "No Binario")]
     @State var lookingFor: [String] = []
 
-    // Edad
+    // Age
     @State var birthDate: Date = Date()
-    // Limites del calendario
     let calendarStart: Date = Calendar.current.date(from: DateComponents(year: 1920)) ?? Date()
     let calendarEnd: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date())!
 

@@ -7,15 +7,14 @@
 
 import SwiftUI
 
-struct PersonalView: View {
+struct PersonalProfileView: View {
     @EnvironmentObject var vm: MainViewModel
-    
-    @State var noSeUtiliza = false
+    @State var useless = false
     
     var body: some View {
         
         NavigationView{
-            PerfilView(usuario: vm.currentUser!, esSheet: false, mostrarBotones: false, abrirChat: $noSeUtiliza)
+            ProfileView(user: vm.currentUser!, isSheet: false, showChatLikeButtons: false, openChat: $useless)
             .navigationTitle("Perfil")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear(){
@@ -26,7 +25,7 @@ struct PersonalView: View {
             }
             
             .navigationBarItems(
-                //Boton editar perfil
+                //Edit profile button
                 leading:
                     NavigationLink(
                         destination: EditarView(),
@@ -35,10 +34,10 @@ struct PersonalView: View {
                     }
                     
                     ),
-                //Boton ajustes de cuenta
+                //Settings button
                 trailing:
                     NavigationLink(
-                        destination: AjustesView(),
+                        destination: SettingsView(),
                     label:{
                         Image(systemName: "gear")
                     })

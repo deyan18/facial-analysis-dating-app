@@ -12,8 +12,7 @@ struct ChatView: View {
     @EnvironmentObject var vm: MainViewModel
     @StateObject var chatVM: ChatViewModel = ChatViewModel()
 
-    // Para textfield
-    @State private var texto = ""
+    @State private var textfieldText = ""
     @FocusState private var isFocused
 
 
@@ -22,10 +21,10 @@ struct ChatView: View {
             GeometryReader { reader in
                 ScrollView {
                     ScrollViewReader { scrollReader in
-                        getMessagesView(viewWidth: reader.size.width) // Lista de mensajes
+                        getMessagesView(viewWidth: reader.size.width)
                             .padding()
 
-                        // Para que se coloque en el sitio adecuado
+                        // Scrolls to new message
                         Spacer()
                             .frame(height: 60)
                             .id("bottom")
@@ -51,7 +50,7 @@ struct ChatView: View {
 
             VStack{
                 Spacer()
-                toolbarView() // Barra con textfield y boton
+                toolbarView()
 
             }
             
@@ -61,40 +60,38 @@ struct ChatView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarItems(
             trailing:
-            NavBarPerfil()
+            NavBarProfile()
         )
         .onAppear {
-            comienzo()
+            onStart()
         }
     }
 
-    private func comienzo() {
+    private func onStart() {
         chatVM.selectedUser = vm.selectedUser!
         chatVM.currentUser = vm.currentUser
         chatVM.fetchMessages()
         chatVM.markAsRead()
-        //withAnimation(.spring()) {
-            vm.hideTabBar = true
-        //}
+        vm.hideTabBar = true
+        
     }
 
-    // Barra con textfield y boton
-    func toolbarView() -> some View {
+    private func toolbarView() -> some View {
         VStack {
-            let height: CGFloat = 37 // Altura de todo
+            let height: CGFloat = 37
             HStack {
-                TextFieldMensaje(placeholder: "Mensaje...", height: height, texto: $texto)
+                MessageTextField(placeholder: "Mensaje...", height: height, text: $textfieldText)
                     .focused($isFocused)
 
                 Button(action: {
                     withAnimation(.spring()) {
-                        enviarMensaje()
+                        self.sendMessage()
                     }
 
                 }) {
-                    BotonSend(height: height, texto: $texto)
+                    SendMessageButton(height: height, texto: $textfieldText)
                 }
-                .disabled(texto.isEmpty)
+                .disabled(textfieldText.isEmpty)
             }
             .frame(height: height)
         }
@@ -102,60 +99,57 @@ struct ChatView: View {
         .background(.ultraThinMaterial)
     }
 
-    func enviarMensaje() {
-        chatVM.sendMessage(text: texto, date: Date.now)
-        texto = ""
+    private func sendMessage() {
+        chatVM.sendMessage(text: textfieldText, date: Date.now)
+        textfieldText = ""
     }
 
-    // Burbujas de mensajes
-    func getMessagesView(viewWidth: CGFloat) -> some View {
+    private func getMessagesView(viewWidth: CGFloat) -> some View {
         VStack(spacing: 1) {
             ForEach(chatVM.messages.indices, id: \.self) { index in
-                let mensaje = chatVM.messages[index]
-                let esRecibido = mensaje.senderUID == vm.selectedUser?.uid // Comprobamos si hemos recibido o enviado el mensaje
+                let message = chatVM.messages[index]
+                let isReceived = message.senderUID == vm.selectedUser?.uid
 
-                if index == 0 { // Si es el primer mensaje siempre mostramos la fecha antes
-                    SeparadorFecha(fecha: mensaje.date, esComienzo: true)
+                if index == 0 { // Always shows date before first message
+                    DateSeparator(date: message.date, firstMessage: true)
 
-                } else { // Comprobamos si hay una diferencia de un día entre este mensaje y el anterior
-                    let mensajeAnterior = chatVM.messages[index - 1]
+                } else { // Checks if theres a date difference with previous message
+                    let previousMessage = chatVM.messages[index - 1]
 
-                    if mensajeAnterior.date.daysBetween(date: mensaje.date) >= 1 {
-                        SeparadorFecha(fecha: mensaje.date)
+                    if previousMessage.date.daysBetween(date: message.date) >= 1 {
+                        DateSeparator(date: message.date)
                     }
                 }
 
-                // Comprobamos si el mensaje es un like
-                if mensaje.text == "*like*" {
-                    if mensaje.senderUID == vm.selectedUser!.uid {
-                        mensajeLike(esRecibido: true, nombre: vm.selectedUser?.name ?? "")
+                if message.text == "*like*" {
+                    if message.senderUID == vm.selectedUser!.uid {
+                        LikeMessage(isRead: true, name: vm.selectedUser?.name ?? "")
                     } else {
-                        mensajeLike(esRecibido: false, nombre: vm.selectedUser?.name ?? "")
+                        LikeMessage(isRead: false, name: vm.selectedUser?.name ?? "")
                     }
 
                 } else {
-                    BurbujaMensaje(esRecibido: esRecibido, mensaje: mensaje, viewWidth: viewWidth)
+                    MessageBubble(isReceived: isReceived, message: message, viewWidth: viewWidth)
                 }
             }
         }
     }
 }
 
-// Mensaje like que hemos podido enviar o recibir
-struct mensajeLike: View {
-    var esRecibido: Bool
-    var nombre: String
+private struct LikeMessage: View {
+    var isRead: Bool
+    var name: String
 
     var body: some View {
         HStack{
             Spacer()
-            if esRecibido {
-                Text("¡\(nombre) le ha dado 💜 a tu perfil!")
+            if isRead {
+                Text("¡\(name) le ha dado 💜 a tu perfil!")
                     .font(.footnote)
                     .padding(8)
 
             } else {
-                Text("¡Has dado 💜 al perfil de \(nombre)!")
+                Text("¡Has dado 💜 al perfil de \(name)!")
                     .font(.footnote)
                     .padding(8)
             }
@@ -166,12 +160,12 @@ struct mensajeLike: View {
     }
 }
 
-struct TextFieldMensaje: View {
+private struct MessageTextField: View {
     var placeholder: String
     var height: CGFloat
-    @Binding var texto: String
+    @Binding var text: String
     var body: some View {
-        TextField(placeholder, text: $texto)
+        TextField(placeholder, text: $text)
             .padding(.horizontal, 10)
             .frame(height: height)
             .background(Color.secondarySystemFill, in: RoundedRectangle(cornerRadius: 13))
@@ -179,7 +173,7 @@ struct TextFieldMensaje: View {
     }
 }
 
-struct BotonSend: View {
+private struct SendMessageButton: View {
     var height: CGFloat
     @Binding var texto: String
     var body: some View {
@@ -193,16 +187,16 @@ struct BotonSend: View {
     }
 }
 
-struct SeparadorFecha: View {
-    var fecha: Date
-    var esComienzo: Bool = false
+private struct DateSeparator: View {
+    var date: Date
+    var firstMessage: Bool = false
 
     var body: some View {
         VStack {
-            if !esComienzo {
+            if !firstMessage {
                 Divider().padding(.top)
             }
-            Text(fecha.dateString())
+            Text(date.dateString())
                 .font(.caption)
                 .padding(8)
                 .foregroundColor(.gray)
@@ -210,45 +204,56 @@ struct SeparadorFecha: View {
     }
 }
 
-struct BurbujaMensaje: View {
-    var esRecibido: Bool
-    var mensaje: MessageModel
-    var viewWidth: CGFloat
-    var calendar = Calendar.current
-    var colorTexto = Color.white
+private struct MessageBubble: View {
+    let isReceived: Bool
+    let message: MessageModel
+    let viewWidth: CGFloat
+    let calendar = Calendar.current
+    let textColor = Color.white
 
     var body: some View {
         HStack {
             ZStack {
                 HStack {
-                    if !esRecibido { // Para colocar fecha en la parte izquierda
-                        Text("\(Calendar.current.dateComponents([.hour], from: mensaje.date).hour!):\(Calendar.current.dateComponents([.minute], from: mensaje.date).minute!)")
-                            .font(.caption).foregroundColor(.gray)
-                            .padding(.leading, 0)
+                    if !isReceived {
+                        hourMinutes
                     }
-                    Text(mensaje.text)
-                        .foregroundColor(colorTexto)
+                    Text(message.text)
+                        .foregroundColor(textColor)
                         .padding(.horizontal)
                         .padding(.top, 12)
                         .padding(.bottom, 10)
-                        .background(esRecibido ? Color.gray : Color.accentColor)
+                        .background(isReceived ? Color.gray : Color.accentColor)
                         .cornerRadius(25)
-                    if esRecibido { // Para colocar fecha en la parte derecha
-                        Text("\(Calendar.current.dateComponents([.hour], from: mensaje.date).hour!):\(Calendar.current.dateComponents([.minute], from: mensaje.date).minute!)")
-                            .font(.caption).foregroundColor(.gray)
-                            .padding(.leading, 0)
+                    if isReceived {
+                        hourMinutes
                     }
                 }
             }
-            .frame(width: viewWidth * 0.7, alignment: esRecibido ? .leading : .trailing)
+            .frame(width: viewWidth * 0.7, alignment: isReceived ? .leading : .trailing)
             .padding(.top, 3)
         }
-        .frame(maxWidth: .infinity, alignment: esRecibido ? .leading : .trailing)
+        .frame(maxWidth: .infinity, alignment: isReceived ? .leading : .trailing)
+    }
+    
+    private func getMinutes() -> String{
+        let minutes = Calendar.current.dateComponents([.minute], from: message.date).minute!
+        return String(format: "%02d", minutes)
+    }
+    
+    private func getHour() -> String{
+        let hour = Calendar.current.dateComponents([.hour], from: message.date).hour!
+        return String(hour)
+    }
+    
+    var hourMinutes: some View {
+        Text("\(getHour()):\(getMinutes())")
+            .font(.caption).foregroundColor(.gray)
+            .padding(.leading, 0)
     }
 }
 
-// Icono que abre sheet con el usuario
-struct NavBarPerfil: View {
+private struct NavBarProfile: View {
     @EnvironmentObject var vm: MainViewModel
     @State var showSheet: Bool = false
     @State var noSeUtiliza = false
@@ -260,7 +265,7 @@ struct NavBarPerfil: View {
         }
         .sheet(isPresented: $showSheet, onDismiss: {
         }, content: {
-            PerfilView(usuario: vm.selectedUser!, esSheet: true, mostrarBotones: false, abrirChat: $noSeUtiliza)
+            ProfileView(user: vm.selectedUser!, isSheet: true, showChatLikeButtons: false, openChat: $noSeUtiliza)
 
         })
     }

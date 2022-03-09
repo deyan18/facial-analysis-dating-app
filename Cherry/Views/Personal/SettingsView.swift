@@ -7,33 +7,31 @@
 
 import SwiftUI
 
-struct AjustesView: View {
+struct SettingsView: View {
     @EnvironmentObject var vm: MainViewModel
-
-    //Campos
-    @State var correo: String = ""
-    @State var contraseniaNueva: String = ""
-    @State var contraseniaConfirmar: String = ""
     
-    @State var alertaContrasenia = false
-    @State var alertaCerrarSesion = false
-    @State var problemaGuardar = false
-    @State var alertaEliminar = false
+    @State var email: String = ""
+    @State var passNew: String = ""
+    @State var passConfirm: String = ""
+    
+    @State var alertSignOut = false
+    @State var alertSaveError = false
+    @State var alertDeleteAccount = false
     
     var body: some View {
         VStack{
-            correoView
+            emailView
             Divider()
-            contrasenias
-            botonGuardar
+            passwordsView
+            saveChangesButton
             if vm.showDebug{
                 ipView
             }
             
             Spacer()
             HStack{
-                botonCerrarSesion
-                botonEliminarCuenta
+                signOutButton
+                deleteAccountButton
             }
             Spacer().frame(height: UIDevice.isIPhone ? 50 : 80)
         }
@@ -43,7 +41,7 @@ struct AjustesView: View {
         }
         .navigationTitle("Ajustes")
         .onAppear(){
-            correo = FirebaseManager.shared.auth.currentUser?.email ?? ""
+            email = FirebaseManager.shared.auth.currentUser?.email ?? ""
         }
         .navigationBarItems(
             trailing:
@@ -56,10 +54,10 @@ struct AjustesView: View {
         ))
     }
     
-    var correoView: some View {
+    var emailView: some View {
         VStack{
             SectionTitle("Correo Electrónico")
-            TextFieldCustom(placeholder: "usuario@email.com", text: $correo, disableAutocorrection: true, autocap: false)
+            TextFieldCustom(placeholder: "usuario@email.com", text: $email, disableAutocorrection: true, autocap: false)
         }.padding(.vertical)
     }
     
@@ -70,25 +68,25 @@ struct AjustesView: View {
         }.padding(.vertical)
     }
     
-    var contrasenias: some View {
+    var passwordsView: some View {
         VStack{
             SectionTitle("Cambiar Contraseña")
-            SecureFieldCustom(placeholder: "Contraseña Nueva", text: $contraseniaNueva)
-            SecureFieldCustom(placeholder: "Confirmar Contraseña", text: $contraseniaConfirmar)
+            SecureFieldCustom(placeholder: "Contraseña Nueva", text: $passNew)
+            SecureFieldCustom(placeholder: "Confirmar Contraseña", text: $passConfirm)
         }.padding(.vertical)
     }
     
-    var botonGuardar: some View {
+    var saveChangesButton: some View {
         Button {
             hideKeyboard()
-            guardar()
+            saveChanges()
         } label: {
             ButtonCustom(text: "Guardar", color: Color.accentColor)
-                .disabled(!correo.contains("@"))
-                .disabled(!contraseniasValidas(contraseniaNueva, contraseniaConfirmar))
+                .disabled(!email.contains("@"))
+                .disabled(!contraseniasValidas(passNew, passConfirm))
         }
         .padding(.top)
-        .alert(isPresented: $problemaGuardar) {
+        .alert(isPresented: $alertSaveError) {
             Alert(
                 title: Text("Error al guardar"),
                 message: Text("Vuelva a revisar los datos introducidos.")
@@ -96,14 +94,14 @@ struct AjustesView: View {
         }
     }
     
-    var botonCerrarSesion: some View {
+    var signOutButton: some View {
         Button {
             hideKeyboard()
-            alertaCerrarSesion = true
+            alertSignOut = true
         } label: {
             ButtonCustom(text: "Cerrar Sesión", color: Color.orange)
         }
-        .alert(isPresented: $alertaCerrarSesion) {
+        .alert(isPresented: $alertSignOut) {
             Alert(
                 title: Text("Va a cerrar sesión"),
                 message: Text("¿Está seguro que desea cerrar sesión?"),
@@ -125,14 +123,14 @@ struct AjustesView: View {
         }
     }
     
-    var botonEliminarCuenta: some View {
+    var deleteAccountButton: some View {
         Button {
             hideKeyboard()
-            alertaEliminar = true;
+            alertDeleteAccount = true;
         } label: {
             ButtonCustom(text: "Eliminar Cuenta", color: Color.red)
         }
-        .alert(isPresented: $alertaEliminar) {
+        .alert(isPresented: $alertDeleteAccount) {
             Alert(
                 title: Text("Su cuenta se va a eliminar"),
                 message: Text("¿Está seguro que desea eliminar su cuenta?"),
@@ -154,21 +152,21 @@ struct AjustesView: View {
     
    
 
-    private func guardar(){
-        if(FirebaseManager.shared.auth.currentUser?.email != correo){
-            FirebaseManager.shared.auth.currentUser?.updateEmail(to: correo, completion: { err in
+    private func saveChanges(){
+        if(FirebaseManager.shared.auth.currentUser?.email != email){
+            FirebaseManager.shared.auth.currentUser?.updateEmail(to: email, completion: { err in
                 if let err = err {
-                    problemaGuardar.toggle()
+                    alertSaveError.toggle()
                     print("Error cambiando email: \(err)")
                 }
             })
 
         }
         
-        if(contraseniaNueva != ""){
-            FirebaseManager.shared.auth.currentUser?.updatePassword(to: contraseniaNueva, completion: { err in
+        if(passNew != ""){
+            FirebaseManager.shared.auth.currentUser?.updatePassword(to: passNew, completion: { err in
                 if let err = err {
-                    problemaGuardar.toggle()
+                    alertSaveError.toggle()
                     print("Error cambiando contraseña: \(err)")
                 }
             })

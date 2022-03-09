@@ -24,13 +24,13 @@ struct MainView: View {
             ZStack { // Acciones tabbar
                 switch vm.tabbarIndex {
                 case 0:
-                    ParaTiView()
+                    ForYouView()
                 case 1:
                     ChatsView()
                 case 2:
-                    PersonalView()
+                    PersonalProfileView()
                 default:
-                    ParaTiView()
+                    ForYouView()
                 }
 
                 // Tabbar

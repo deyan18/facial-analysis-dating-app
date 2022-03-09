@@ -10,49 +10,45 @@ import FirebaseFirestore
 import Firebase
 
 struct EditarView: View {
-    @Environment(\.defaultMinListRowHeight) var minRowHeight
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @EnvironmentObject var vm: MainViewModel
     @EnvironmentObject var lm: LocationManager
 
-    //Campos
-    @State var nombre = ""
-    @State var sobreMi = ""
+    @State var name = ""
+    @State var aboutMe = ""
     
-    //Edad
-    @State var fechaNacimiento: Date = Date()
-    let fechaComienzo: Date = Calendar.current.date(from: DateComponents(year: 1920)) ?? Date()
-    let fechaFinal: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date())!
+    //Age
+    @State var birthDate: Date = Date()
+    let calendarStart: Date = Calendar.current.date(from: DateComponents(year: 1920)) ?? Date()
+    let calendarEnd: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date())!
     
-    //Generos
-    var generos = ["Mujer", "Hombre", "No Binario"]
-    @State private var genero = ""
-    @State var generosBuscar: [GenderModel] = [GenderModel(gender: "Mujer"),
+    // Genders
+    var genders = ["Mujer", "Hombre", "No Binario"]
+    @State private var selectedGender = ""
+    @State var lookingForOptions: [GenderModel] = [GenderModel(gender: "Mujer"),
                                                GenderModel(gender: "Hombre"),
                                                GenderModel(gender: "No Binario")]
-    @State var generosSeleccionados: [String] = []
+    @State var lookingFor: [String] = []
     
-    //Atributos
-    @State var buscarAtributo = false
-    @State var atributoBusqueda = ""
-    @State var atributosSeleccionados: [String] = []
+    //Attributes
+    @State var searchAttributes = false
+    @State var searchAttributesField = ""
+    @State var selectedAttributes: [String] = []
 
     //Fotos
-    @State var foto1: UIImage = UIImage.init(named:"Vacio")!
-    @State var foto2: UIImage = UIImage.init(named:"Vacio")!
-    @State var foto3: UIImage = UIImage.init(named:"Vacio")!
-    @State var fotoV: UIImage = UIImage.init(named:"Vacio")!
+    @State var img1: UIImage = UIImage.init(named:"Vacio")!
+    @State var img2: UIImage = UIImage.init(named:"Vacio")!
+    @State var img3: UIImage = UIImage.init(named:"Vacio")!
+    @State var imgV: UIImage = UIImage.init(named:"Vacio")!
     @State var url1 = ""
     @State var url2 = ""
     @State var url3 = ""
     @State var urlV = ""
-    var fotoEmpty: UIImage = UIImage.init(named:"Vacio")! //Para comparar si una foto se ha alterado
-
-    //Alertas
-    @State var fotoValida = false
-    @State var faltanDatos = false
-    @State var apiErrorGuardar = false
-    @State var alertFoto = false
+    var imgEmpty: UIImage = UIImage.init(named:"Vacio")! //Para comparar si una foto se ha alterado
+    @State var validImg = false
+    
+    @State var alertMissingData = false
+    @State var alertErrorSaving = false
+    @State var alertInvalidImg = false
     
     var body: some View {
         ZStack{
@@ -60,23 +56,23 @@ struct EditarView: View {
             ScrollView(showsIndicators: false){
                 VStack{ //Dividido en grupos porque no puede haber mas de 10 componentes en una view
                     Group{
-                        editarNombre
+                        nameField
                         Divider()
-                        editarDescripcion
+                        aboutMeField
                         Divider()
-                        edad
+                        ageField
                         Divider()
-                        generoPicker
+                        genderField
                         Divider()
                     }
                     
-                    generoBusco
+                    lookingForView
                     Divider()
-                    fotos
+                    imagesView
                     Divider()
-                    fotoVerificar
+                    faceImageView
                     Divider()
-                    atributosField
+                    attributesView
                     Spacer().frame(height: 100) //Para que no quede tapado por la tabbar
                         
                 }
@@ -97,7 +93,7 @@ struct EditarView: View {
             }
             
             Spacer()
-                .alert(isPresented: $alertFoto) {
+                .alert(isPresented: $alertInvalidImg) {
                     Alert(
                         title: Text("Foto No Válida"),
                         message: Text("La foto de cara no es válida. Vuelva a probar con otra.")
@@ -105,7 +101,7 @@ struct EditarView: View {
                 }
             
             Spacer()
-                .alert(isPresented: $apiErrorGuardar) {
+                .alert(isPresented: $alertErrorSaving) {
                     Alert(
                         title: Text("Problema con servidor"),
                         message: Text("Vuelve a intentarlo más tarde.")
@@ -121,31 +117,31 @@ struct EditarView: View {
                 //Boton guardar
                 Button(action: {
                     //Pasamos los datos de los attributes y los generos a sus arrays correspondientes
-                    atributosSeleccionados.removeAll()
+                    selectedAttributes.removeAll()
                     vm.attributes.forEach { a in
                         if(a.isSelected){
-                            atributosSeleccionados.append(a.text)
+                            selectedAttributes.append(a.text)
                         }
                     }
                     
-                    generosSeleccionados.removeAll()
-                    generosBuscar.forEach { genero in
+                    lookingFor.removeAll()
+                    lookingForOptions.forEach { genero in
                         if(genero.isSelected){
-                            generosSeleccionados.append(genero.gender)
+                            lookingFor.append(genero.gender)
                         }
                     }
                     
-                    if(nombre == "" || sobreMi == "" || atributosSeleccionados.isEmpty || generosSeleccionados.isEmpty){
-                        faltanDatos = true //Para acción la alerta
+                    if(name == "" || aboutMe == "" || selectedAttributes.isEmpty || lookingFor.isEmpty){
+                        alertMissingData = true //Para acción la alerta
                     }else{
-                        guardarDatos()
+                        saveChanges()
                     }
                         
                 }, label: {
                     Text("Guardar")
                 })
                 .disabled(vm.showLoadingView)
-                .alert(isPresented: $faltanDatos) {
+                .alert(isPresented: $alertMissingData) {
                     Alert(
                         title: Text("Faltan datos"),
                         message: Text("Rellene todos los datos.")
@@ -154,40 +150,40 @@ struct EditarView: View {
             
         )
         .onAppear(){
-            cargarDatos()
+            onStart()
         }
-        .onChange(of: fotoV) { e in
-            subirFotoTemp()
+        .onChange(of: imgV) { e in
+            uploadTempImg()
         }
     }
     
-    var editarNombre: some View{
+    var nameField: some View{
         VStack{
             SectionTitle("Nombre")
-            TextFieldCustom(placeholder: "Nombre y Apellidos", text: $nombre)
+            TextFieldCustom(placeholder: "Nombre y Apellidos", text: $name)
         }.padding(.vertical)
     }
     
-    var editarDescripcion: some View{
+    var aboutMeField: some View{
         VStack{
             SectionTitle("Sobre mi")
-            TextEditorCustom(text: $sobreMi)
+            TextEditorCustom(text: $aboutMe)
         }.padding(.vertical)
     }
     
-    var edad: some View{
+    var ageField: some View{
         VStack{
             SectionTitle("Edad")
-            DatePicker("Fecha de Nacimiento", selection: $fechaNacimiento, in: fechaComienzo...fechaFinal, displayedComponents: [.date])
+            DatePicker("Fecha de Nacimiento", selection: $birthDate, in: calendarStart...calendarEnd, displayedComponents: [.date])
                 
         }.padding(.vertical)
     }
     
-    var generoPicker: some View{
+    var genderField: some View{
         VStack{
             SectionTitle("Genero")
-            Picker("Genero", selection: $genero) {
-                ForEach(generos, id: \.self) {
+            Picker("Genero", selection: $selectedGender) {
+                ForEach(genders, id: \.self) {
                     Text($0)
                 }
             }
@@ -195,24 +191,24 @@ struct EditarView: View {
         }.padding(.vertical)
     }
     
-    var generoBusco: some View {
+    var lookingForView: some View {
         VStack{
             SectionTitle("Busco")
             HStack(spacing: 20){
-                ForEach(0..<generosBuscar.count){ index in
+                ForEach(0..<lookingForOptions.count){ index in
                     HStack {
                         Button(action: {
-                            generosBuscar[index].isSelected.toggle()
+                            lookingForOptions[index].isSelected.toggle()
                         }) {
                             HStack{
-                                if generosBuscar[index].isSelected {
+                                if lookingForOptions[index].isSelected {
                                     Image(systemName: "checkmark.circle.fill")
                                         .animation(.easeIn)
                                 } else {
                                     Image(systemName: "circle")
                                         .foregroundColor(.primary)
                                 }
-                                Text(generosBuscar[index].gender).foregroundColor(.primary)
+                                Text(lookingForOptions[index].gender).foregroundColor(.primary)
                                     .font(.callout)
                             }
                         }
@@ -225,19 +221,19 @@ struct EditarView: View {
         }.padding(.vertical)
     }
     
-    var fotos: some View {
+    var imagesView: some View {
         VStack{
             SectionTitle("Fotos")
             HStack(spacing: 20){
-                UploadImageButton(image: $foto1, url: vm.currentUser?.url1 ?? "")
-                UploadImageButton(image: $foto2, url: vm.currentUser?.url2 ?? "")
-                UploadImageButton(image: $foto3, url: vm.currentUser?.url3 ?? "")
+                UploadImageButton(image: $img1, url: vm.currentUser?.url1 ?? "")
+                UploadImageButton(image: $img2, url: vm.currentUser?.url2 ?? "")
+                UploadImageButton(image: $img3, url: vm.currentUser?.url3 ?? "")
             }
             
         }.padding(.vertical)
     }
     
-    var fotoVerificar: some View {
+    var faceImageView: some View {
         HStack{
             VStack{
                 SectionTitle("Foto de Cara")
@@ -248,14 +244,14 @@ struct EditarView: View {
                 }
             }
             Spacer()
-            UploadImageButton(image: $fotoV, url: vm.currentUser?.urlV ?? "")
+            UploadImageButton(image: $imgV, url: vm.currentUser?.urlV ?? "")
         }.padding()
             
     }
     
-    var atributosField: some View{
+    var attributesView: some View{
         VStack{
-            if(!buscarAtributo){
+            if(!searchAttributes){
                 //Lista con todos los attributes + boton de busqueda
                 SectionTitle("Atributos Disponibles")
                 ScrollView(.horizontal, showsIndicators: false){
@@ -264,7 +260,7 @@ struct EditarView: View {
                         HStack{
                             Button {
                                 withAnimation() {
-                                    buscarAtributo.toggle()
+                                    searchAttributes.toggle()
                                 }
                             } label: {
                                 AttributeView(text: "Buscar", icon: "magnifyingglass.circle.fill")
@@ -291,7 +287,7 @@ struct EditarView: View {
                 //Vista de busqueda de atributo
                 Button {
                     withAnimation() {
-                        buscarAtributo.toggle()
+                        searchAttributes.toggle()
                     }
                 } label: {
                     HStack{
@@ -301,13 +297,13 @@ struct EditarView: View {
                     }
                 }
                 //Campo de busqueda
-                TextFieldCustom(placeholder: "Ej: Cantante", text: $atributoBusqueda)
+                TextFieldCustom(placeholder: "Ej: Cantante", text: $searchAttributesField)
 
                 //Lista de resultados de la busqueda
                 ScrollView(.horizontal, showsIndicators: false){
                     HStack{
                         ForEach(vm.attributes.indices, id: \.self) { index in
-                            if(!vm.attributes[index].isSelected && vm.attributes[index].text.lowercased().contains(atributoBusqueda.lowercased())){
+                            if(!vm.attributes[index].isSelected && vm.attributes[index].text.lowercased().contains(searchAttributesField.lowercased())){
                                 Button {
                                     withAnimation() {
                                         vm.attributes[index].isSelected = true
@@ -345,12 +341,12 @@ struct EditarView: View {
     }
     
     //Funcion que se llama onAppear que rellena los campos con los datos de la BD
-    func cargarDatos(){
+    func onStart(){
         //Valor de campos de texto, picker de sexo y fecha nacimiento
-        nombre = vm.currentUser?.name ?? ""
-        sobreMi = vm.currentUser?.aboutMe ?? ""
-        genero = vm.currentUser?.gender ?? ""
-        fechaNacimiento = vm.currentUser?.birthDate ?? Date()
+        name = vm.currentUser?.name ?? ""
+        aboutMe = vm.currentUser?.aboutMe ?? ""
+        selectedGender = vm.currentUser?.gender ?? ""
+        birthDate = vm.currentUser?.birthDate ?? Date()
 
         url1 = vm.currentUser?.url1 ?? ""
         url2 = vm.currentUser?.url2 ?? ""
@@ -359,9 +355,9 @@ struct EditarView: View {
         
         //Lista de generos que busca
         vm.currentUser?.lookingFor.forEach({ generoGuardado in
-            for (index,generoLista) in generosBuscar.enumerated() {
+            for (index,generoLista) in lookingForOptions.enumerated() {
                 if(generoLista.gender == generoGuardado){
-                    generosBuscar[index].isSelected = true
+                    lookingForOptions[index].isSelected = true
                 }
             }
         })
@@ -383,12 +379,12 @@ struct EditarView: View {
         
     }
     
-    private func subirFotoTemp(){
+    private func uploadTempImg(){
         guard let uid = FirebaseManager.shared.auth.currentUser?.uid else{return}
         
         vm.showLoadingView = true
         let refFotoV = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoTemp")
-        guard let fotoVData = fotoV.jpegData(compressionQuality: 0.8) else {return}
+        guard let fotoVData = imgV.jpegData(compressionQuality: 0.8) else {return}
         refFotoV.putData(fotoVData, metadata: nil) {metadata, err in
             if let err = err {
                 print("Error subiendo fotoTemp: \(err)")
@@ -405,13 +401,13 @@ struct EditarView: View {
                     print("Correcto url fotoTemp: \(urlTemp.absoluteString)")
                     
                     //Para comprobar que la foto es valida
-                    validarFoto(url: urlTemp.absoluteString)
+                    validateImg(url: urlTemp.absoluteString)
                 }
                 
             }}
     }
     
-    private func guardarDatos(){
+    private func saveChanges(){
         vm.showLoadingView = true
         //Para las tareas asincronas
         let dispatchGroup = DispatchGroup()
@@ -423,9 +419,9 @@ struct EditarView: View {
         
         dispatchQueue.async {
             //Si se ha cambiado la foto1 se vuelve a subir a la BD
-            if(foto1 != fotoEmpty){
+            if(img1 != imgEmpty){
                 let refFoto1 = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto1")
-                guard let foto1Data = foto1.jpegData(compressionQuality: 0.8) else {return}
+                guard let foto1Data = img1.jpegData(compressionQuality: 0.8) else {return}
                 
                 dispatchGroup.enter()
                 refFoto1.putData(foto1Data, metadata: nil) {metadata, err in
@@ -450,9 +446,9 @@ struct EditarView: View {
             }
             
             //Si se ha cambiado la foto2 se vuelve a subir a la BD
-            if(foto2 != fotoEmpty){
+            if(img2 != imgEmpty){
                 let refFoto2 = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto2")
-                guard let foto2Data = foto2.jpegData(compressionQuality: 0.8) else {return}
+                guard let foto2Data = img2.jpegData(compressionQuality: 0.8) else {return}
                 dispatchGroup.enter()
                 refFoto2.putData(foto2Data, metadata: nil) {metadata, err in
                     if let err = err {
@@ -475,9 +471,9 @@ struct EditarView: View {
             }
             
             //Si se ha cambiado la foto3 se vuelve a subir a la BD
-            if(foto3 != fotoEmpty){
+            if(img3 != imgEmpty){
                 let refFoto3 = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/foto3")
-                guard let foto3Data = foto3.jpegData(compressionQuality: 0.8) else {return}
+                guard let foto3Data = img3.jpegData(compressionQuality: 0.8) else {return}
                 dispatchGroup.enter()
                 refFoto3.putData(foto3Data, metadata: nil) {metadata, err in
                     if let err = err {
@@ -502,10 +498,10 @@ struct EditarView: View {
             }
             
             //Si se ha cambiado la fotoV y es valida se vuelve a subir a la BD
-            if(fotoValida){
+            if(validImg){
                 
                 let refFotoV = FirebaseManager.shared.storage.reference(withPath: "fotos/\(uid)/fotoV")
-                guard let fotoVData = fotoV.jpegData(compressionQuality: 0.8) else {return}
+                guard let fotoVData = imgV.jpegData(compressionQuality: 0.8) else {return}
                 dispatchGroup.enter()
                 refFotoV.putData(fotoVData, metadata: nil) {metadata, err in
                     if let err = err {
@@ -540,7 +536,7 @@ struct EditarView: View {
             DispatchQueue.main.async {
                     var userData: [String : Any]
                     
-                    userData = ["uid": uid,"nombre": nombre, "sobreMi": sobreMi, "genero": genero, "busco": generosSeleccionados, "url1": url1, "url2": url2, "url3": url3, "urlV": urlV, "fechaNacimiento": fechaNacimiento, "atributos": atributosSeleccionados, "ubicacion": GeoPoint(latitude: lm.lastLocation?.coordinate.latitude ?? 0.0, longitude: lm.lastLocation?.coordinate.longitude ?? 0.0)]
+                    userData = ["uid": uid,"nombre": name, "sobreMi": aboutMe, "genero": selectedGender, "busco": lookingFor, "url1": url1, "url2": url2, "url3": url3, "urlV": urlV, "fechaNacimiento": birthDate, "atributos": selectedAttributes, "ubicacion": GeoPoint(latitude: lm.lastLocation?.coordinate.latitude ?? 0.0, longitude: lm.lastLocation?.coordinate.longitude ?? 0.0)]
                     
                     //Se hace un update ya que hay datos que no se modifican aqui
                     FirebaseManager.shared.firestore.collection("usuarios")
@@ -561,7 +557,7 @@ struct EditarView: View {
     }
     
     //Funcion que comprueba si se reconoce una cara en la url de la foto dada haciendo una llamada a la api con DeepFace
-    func validarFoto(url: String) -> Void {
+    func validateImg(url: String) -> Void {
         let json = ["url": url]
                 do {
                     let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
@@ -578,7 +574,7 @@ struct EditarView: View {
                             print("Error -> \(String(describing: error))")
                             //Para alerta
                             DispatchQueue.main.async {
-                                apiErrorGuardar = true
+                                alertErrorSaving = true
                                 vm.showLoadingView = false
                             }
                             return
@@ -591,8 +587,8 @@ struct EditarView: View {
                             //Para alerta
                             DispatchQueue.main.async {
                                 vm.showLoadingView = false
-                                self.fotoValida = result
-                                self.alertFoto = !self.fotoValida
+                                self.validImg = result
+                                self.alertInvalidImg = !self.validImg
                             }
 
                         } catch {
@@ -604,7 +600,7 @@ struct EditarView: View {
                 } catch {
                     DispatchQueue.main.async {
                         vm.showLoadingView = false
-                        apiErrorGuardar = true
+                        alertErrorSaving = true
                     }
                     print(error)
                 }

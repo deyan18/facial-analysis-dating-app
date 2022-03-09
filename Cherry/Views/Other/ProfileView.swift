@@ -9,64 +9,62 @@ import SDWebImageSwiftUI
 import SwiftUI
 import WrappingStack
 
-struct PerfilView: View {
+struct ProfileView: View {
     @StateObject var chatVM: ChatViewModel = ChatViewModel()
     @EnvironmentObject var vm: MainViewModel
     @Environment(\.presentationMode) var presentationMode
 
-    // Variables que se reciben
-    var usuario: UserModel
-    var esSheet: Bool
-    var mostrarBotones: Bool
-    @Binding var abrirChat: Bool // Toggle para abrir chat en otra vista
+    var user: UserModel
+    var isSheet: Bool
+    var showChatLikeButtons: Bool
+    @Binding var openChat: Bool // To open chat in another view
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            if esSheet {
+            if isSheet {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(.regularMaterial)
                     .frame(width: 50, height: 8)
                     .padding(.top)
             }
 
-            ZStack { // Lista de fotos
-                tabsFotos
+            ZStack {
+                photos
 
-                // Se puede abrir como sheet o como una vista
-                if esSheet {
-                    botonAtras
+                if isSheet {
+                    closeButton
                 }
-            }.frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 1 : 0.7) , height: UIScreen.screenWidth * (UIDevice.isIPhone ? 1 : 0.7))
+            }.frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 1 : 0.7), height: UIScreen.screenWidth * (UIDevice.isIPhone ? 1 : 0.7))
 
-            nombreEdad
+            nameAgeGender
 
-            if mostrarBotones {
-                botones
+            if showChatLikeButtons {
+                chatLikeButtons
             }
-            AboutMeView(heading: "Sobre mi", text: usuario.aboutMe)
-            atributos
+            AboutMeView(heading: "Sobre mi", text: user.aboutMe)
+            attributes
             Spacer()
                 .frame(height: UIDevice.isIPhone ? 40 : 60)
         }.onAppear {
-            cargarDatos()
+            onStart()
         }
     }
 
-    private func cargarDatos() {
+    private func onStart() {
         if vm.selectedUser != nil {
             chatVM.selectedUser = vm.selectedUser
         }
         chatVM.currentUser = vm.currentUser
     }
 
-    var tabsFotos: some View {
+    var photos: some View {
         TabView {
-            ForEach(usuario.urls, id: \.self) { url in
+            ForEach(user.urls, id: \.self) { url in
                 VStack {
                     WebImage(url: URL(string: url))
                         .resizable()
                         .scaledToFill()
-                        .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.9 : 0.6) , height: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.9 : 0.6))
+                        .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.9 : 0.6), height: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.9 : 0.6))
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                 }
             }
@@ -76,7 +74,7 @@ struct PerfilView: View {
         .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
     }
 
-    var botonAtras: some View {
+    var closeButton: some View {
         VStack {
             HStack {
                 Spacer()
@@ -94,31 +92,31 @@ struct PerfilView: View {
         }.padding(UIDevice.isIPhone ? 30 : 50)
     }
 
-    var nombreEdad: some View {
+    var nameAgeGender: some View {
         HStack {
-            Text(usuario.name)
+            Text(user.name)
                 .font(.title)
                 .fontWeight(.semibold)
-            Text("\(usuario.age)")
+            Text("\(user.age)")
                 .font(.title2)
-            AttributeView(text: usuario.gender)
+            AttributeView(text: user.gender)
         }
     }
 
-    var botones: some View {
+    var chatLikeButtons: some View {
         HStack(spacing: 20.0) {
-            // Boton like
+            // Like button
             Button {
                 chatVM.sendMessage(text: "*like*", date: Date.now)
-                abrirChat = true
+                openChat = true
                 presentationMode.dismiss()
             } label: {
                 IconButtonCustom(icon: "heart.fill", colorIcon: Color.accentColor)
             }
 
-            // Boton chat
+            // Chat button
             Button {
-                abrirChat = true
+                openChat = true
                 presentationMode.dismiss()
             } label: {
                 IconButtonCustom(icon: "message.fill", colorIcon: Color.gray)
@@ -129,19 +127,18 @@ struct PerfilView: View {
         .shadow(color: .black.opacity(0.07), radius: 3, x: 3, y: 3)
     }
 
-    var coincide = false
-    var atributos: some View {
+    var attributes: some View {
         WrappingHStack(id: \.self, horizontalSpacing: 6) {
-            ForEach(usuario.attributes, id: \.self) { a in
-                AttributeView(text: a, matches: atributoCoincide(texto: a))
+            ForEach(user.attributes, id: \.self) { a in
+                AttributeView(text: a, matches: checkAttributeMatch(texto: a))
             }
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 40) // Para que no lo tape la tabbar
     }
 
-    private func atributoCoincide(texto: String) -> Bool {
-        if !esSheet { return false }
+    private func checkAttributeMatch(texto: String) -> Bool {
+        if !isSheet { return false }
 
         for atributo in vm.currentUser!.attributes {
             if atributo == texto {

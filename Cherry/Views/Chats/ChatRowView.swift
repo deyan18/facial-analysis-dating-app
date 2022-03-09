@@ -7,34 +7,34 @@
 
 import SwiftUI
 
-struct FilaChatView: View {
-    @State var reciente: RecentMessageModel
+struct ChatRowView: View {
+    @State var recentMessage: RecentMessageModel
 
     var body: some View {
         HStack(spacing: 20) {
-            ImageCircular(url: reciente.url, size: 80)
+            ImageCircular(url: recentMessage.url, size: 80)
 
             ZStack {
                 VStack(alignment: .leading, spacing: 5) {
                     HStack {
-                        SemiBoldText(texto: reciente.name)
+                        SemiBoldText(texto: recentMessage.name)
                         Spacer()
-                        Text(reciente.date.dateString())
+                        Text(recentMessage.date.dateString())
                     }
 
                     HStack {
-                        TextDentroChat(texto: reciente.text)
+                        messageText(texto: recentMessage.text)
                     }
                 }
-                if !reciente.isRead {
-                    circuloPendiente
+                if !recentMessage.isRead {
+                    newMessageIndicator
                 }
             }
         }
         .frame(height: 80)
     }
 
-    var circuloPendiente: some View {
+    var newMessageIndicator: some View {
         Circle()
             .foregroundColor(.accentColor)
             .frame(width: 18, height: 18)
@@ -42,7 +42,7 @@ struct FilaChatView: View {
     }
 }
 
-struct TextDentroChat: View {
+struct messageText: View {
     var texto: String
 
     var body: some View {

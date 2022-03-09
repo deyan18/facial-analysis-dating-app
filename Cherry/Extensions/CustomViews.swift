@@ -361,7 +361,7 @@ struct TabBarCustom: View {
                                             .fill(Color.accentColor)
                                             .frame(width: 13, height: 5)
                                             .frame(maxHeight: .infinity, alignment: .top)
-                                            .offset(y: -6)
+                                            .offset(y: UIDevice.isIPhone ? -6 : -12)
                                     )
                             }.frame(width: 30)
                             
@@ -377,36 +377,6 @@ struct TabBarCustom: View {
         .padding(EdgeInsets(top: 15, leading: 0, bottom: 20, trailing: 0))
         .frame(width: UIScreen.screenWidth, height: UIScreen.screenHeight * 0.08)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS, style: .continuous))
-        /*.background( // Circulo de color por detras
-            HStack {
-                Spacer()
-                ForEach(tabBarElements, id: \.self) { element in
-                            if vm.tabbarIndex == element.index {
-                               
-                                Circle().fill(Color.accentColor)
-                            }else{
-                                Circle().fill(Color.clear)
-
-                            }
-
-                    
-                    Spacer()
-                }
-            }
-           
-        )
-        
-        .overlay( // Barrita que aparece encima del icono
-            RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS)
-                .fill(Color.accentColor)
-                .frame(width: 28, height: 5)
-                .frame(width: 90)
-                .frame(maxHeight: .infinity, alignment: .top)
-                .offset(x: vm.tabbarIndex == 0 ? -103 : (vm.tabbarIndex == 1 ? 5 : +108))
-        )
-        .shadow(color: .black.opacity(0.06), radius: 5, x: -5, y: -5)
-        .shadow(color: .black.opacity(0.06), radius: 5, x: 5, y: 5)
-         */
     }
 }
 
