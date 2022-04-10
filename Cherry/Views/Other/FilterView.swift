@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct FiltroView: View {
+struct FilterView: View {
     @EnvironmentObject var vm: MainViewModel
 
     @State var ageMinLocal = 0

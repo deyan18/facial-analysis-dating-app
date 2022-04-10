@@ -106,7 +106,7 @@ struct SignInView: View {
                 .sheet(isPresented: $openUserManual) {
                     
                 } content: {
-                    ManualUsuarioView()
+                    UserManualView()
                 }
 
             }

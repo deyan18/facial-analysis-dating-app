@@ -46,7 +46,7 @@ struct SettingsView: View {
         .navigationBarItems(
             trailing:
                 NavigationLink(
-                    destination: ManualUsuarioView(),
+                    destination: UserManualView(),
                 label:{
                     Image(systemName: "info.circle")
                 }

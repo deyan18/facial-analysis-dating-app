@@ -45,7 +45,7 @@ struct MainView: View {
 
                 // Para que el las vista de filtros quede por encima de todo
                 if vm.openFilters {
-                    FiltroView()
+                    FilterView()
                 }
                 
                 // Para bloquear el acceso a la app si el acceso a la ubicacion esta deshabilitado

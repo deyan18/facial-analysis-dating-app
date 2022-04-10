@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ManualUsuarioView: View {
+struct UserManualView: View {
     var body: some View {
         ScrollView{
             VStack(alignment: .leading){

@@ -1,8 +1,8 @@
 //
-//  Modelos.swift
+//  UserModel.swift
 //  Cherry
 //
-//  Created by Deyan on 25/1/22.
+//  Created by Deyan on 10/4/22.
 //
 
 import SwiftUI
@@ -51,6 +51,8 @@ struct UserModel: Hashable, Identifiable {
     
     
 }
+
+
 func calculateAge(birthDate: Date) -> Int{
     var age: Int
     let birth = Calendar.current.dateComponents([.year, .month, .day], from: birthDate)
@@ -59,61 +61,4 @@ func calculateAge(birthDate: Date) -> Int{
     
     age = ageComponents.year!
     return age
-}
-
-struct MessageModel: Identifiable{
-    
-    let id : UUID = UUID()
-    let date: Date
-    let text: String
-    let senderUID: String
-    let receiverUID: String
-    
-    init(_ texto: String, emisorId: String, receptorId: String, fecha: Date){
-        self.text = texto
-        self.date = fecha
-        self.senderUID = emisorId
-        self.receiverUID = receptorId
-    }
-    
-    init(_ texto: String, emisorId: String, receptorId: String){
-        self.init(texto, emisorId: emisorId, receptorId: receptorId, fecha: Date())
-    }
-    
-    init(data: [String: Any]){
-        self.text = data["texto"] as? String ?? ""
-        self.date = (data["fecha"] as? Timestamp)?.dateValue() ?? Date()
-        self.senderUID = data["emisorId"] as? String ?? ""
-        self.receiverUID = data["receptorId"] as? String ?? ""
-    }
-}
-
-struct RecentMessageModel: Identifiable, Hashable{
-    let id : UUID = UUID()
-    let text, senderUID, receiverUID, url, name: String
-    let date: Date
-    var isRead: Bool
-    
-    init(data: [String: Any]){
-        self.text = data["texto"] as? String ?? ""
-        self.name = data["nombre"] as? String ?? ""
-        self.senderUID = data["emisorId"] as? String ?? ""
-        self.receiverUID = data["receptorId"] as? String ?? ""
-        self.url = data["urlFoto"] as? String ?? ""
-        self.date = (data["fecha"] as? Timestamp)?.dateValue() ?? Date()
-        self.isRead = data["esLeido"] as? Bool ?? true
-    }
-}
-
-struct AttributeModel: Identifiable, Hashable{
-    let id : UUID = UUID()
-    var text: String
-    var isSelected: Bool = false
-}
-
-
-struct GenderModel{
-    var id = UUID()
-    var gender: String
-    var isSelected: Bool = false
 }
