@@ -22,7 +22,7 @@
 		33A843252728A20800591A4F /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A843232728A20800591A4F /* SignUpView.swift */; };
 		33A843262728A20800591A4F /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A843242728A20800591A4F /* SignInView.swift */; };
 		33CF63902711F24F0047AC6D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CF638F2711F24F0047AC6D /* SettingsView.swift */; };
-		33CF639227120B5C0047AC6D /* EditarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CF639127120B5C0047AC6D /* EditarView.swift */; };
+		33CF639227120B5C0047AC6D /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CF639127120B5C0047AC6D /* EditProfileView.swift */; };
 		33EF1600270EFC95004F38AE /* ChatRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EF15FF270EFC95004F38AE /* ChatRowView.swift */; };
 		8B087C4027A0295100303C10 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B087C3F27A0295100303C10 /* Models.swift */; };
 		8B57E62D27B008170079C128 /* FiltroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B57E62C27B008170079C128 /* FiltroView.swift */; };
@@ -87,7 +87,7 @@
 		33A843232728A20800591A4F /* SignUpView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
 		33A843242728A20800591A4F /* SignInView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		33CF638F2711F24F0047AC6D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		33CF639127120B5C0047AC6D /* EditarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditarView.swift; sourceTree = "<group>"; };
+		33CF639127120B5C0047AC6D /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		33EF15FF270EFC95004F38AE /* ChatRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRowView.swift; sourceTree = "<group>"; };
 		8B087C3F27A0295100303C10 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		8B57E62C27B008170079C128 /* FiltroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FiltroView.swift; sourceTree = "<group>"; };
@@ -265,7 +265,7 @@
 			children = (
 				337F7837270CDB4B00BEF2AE /* PersonalProfileView.swift */,
 				33CF638F2711F24F0047AC6D /* SettingsView.swift */,
-				33CF639127120B5C0047AC6D /* EditarView.swift */,
+				33CF639127120B5C0047AC6D /* EditProfileView.swift */,
 			);
 			path = Personal;
 			sourceTree = "<group>";
@@ -445,7 +445,7 @@
 				3368CE102700EFCF007749B6 /* ForYouView.swift in Sources */,
 				8B83ED0127BD5E8300066C60 /* ColorExtension.swift in Sources */,
 				8B087C4027A0295100303C10 /* Models.swift in Sources */,
-				33CF639227120B5C0047AC6D /* EditarView.swift in Sources */,
+				33CF639227120B5C0047AC6D /* EditProfileView.swift in Sources */,
 				8B57E62D27B008170079C128 /* FiltroView.swift in Sources */,
 				8B58E2E52791E81000CDB956 /* CustomizeProfileView.swift in Sources */,
 				33CF63902711F24F0047AC6D /* SettingsView.swift in Sources */,

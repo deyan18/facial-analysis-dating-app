@@ -9,7 +9,7 @@ import SwiftUI
 import FirebaseFirestore
 import Firebase
 
-struct EditarView: View {
+struct EditProfileView: View {
     @EnvironmentObject var vm: MainViewModel
     @EnvironmentObject var lm: LocationManager
 

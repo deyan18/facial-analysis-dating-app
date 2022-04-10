@@ -28,7 +28,7 @@ struct PersonalProfileView: View {
                 //Edit profile button
                 leading:
                     NavigationLink(
-                        destination: EditarView(),
+                        destination: EditProfileView(),
                     label:{
                         Text("Editar")
                     }
