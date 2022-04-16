@@ -57,7 +57,6 @@ struct ForYouView: View {
             .sheet(isPresented: $openProfileSheet, onDismiss: {
             }, content: {
                 ProfileView(user: vm.selectedUser!, isSheet: true, showChatLikeButtons: true, openChat: $openChat)
-
             })
             .alert(isPresented: $vm.apiError) {
                 Alert(

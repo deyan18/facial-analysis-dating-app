@@ -30,7 +30,7 @@ struct FilterView: View {
             chooseAgeRange
             saveButton
         }
-        .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 1 : 0.6))
+        .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.8 : 0.6))
         .padding()
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
@@ -99,7 +99,6 @@ struct FilterView: View {
             HStack {
                 Text("Rasgos")
                     .font(.headline)
-                Spacer()
             }
             Picker("Rasgos", selection: $featuresPrefence) {
                 ForEach(features, id: \.self) {

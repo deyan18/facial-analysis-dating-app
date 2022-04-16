@@ -260,7 +260,7 @@ struct SignInView: View {
             email = ""
             password = ""
             vm.tabbarIndex = 0
-            vm.fetchCurrentUser() // Cargamos el usuario actual
+            vm.fetchCurrentUser()
 
             withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
                 vm.signedIn = true

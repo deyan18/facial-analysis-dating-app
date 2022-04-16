@@ -60,7 +60,7 @@ class MainViewModel: ObservableObject {
             }
     }
 
-    // Data that needs the user to be loaded first
+    // Data that requires the current user to be loaded
     private func fetchUserDependantData() {
         fetchUsers()
         fetchUsersAnalyzed()
@@ -120,7 +120,6 @@ class MainViewModel: ObservableObject {
                             }
                         }
                     }
-
                 })
 
                 self.sortUsers()
@@ -153,27 +152,25 @@ class MainViewModel: ObservableObject {
         let currentUserLocation = currentUser?.location ?? CLLocation(latitude: 0.0, longitude: 0.0)
 
         for (index, user) in users.enumerated() {
-            users[index].distanceMetres = user.location.distance(from: currentUserLocation)
-
-            if SHOW_DEBUG_CONSOLE {
-                print("Distance: \(users[index].distanceMetres), allowed distance: \(DISTANCE_LIMIT)")
-            }
-
             if lookingFor.contains(user.gender) && user.lookingFor.contains(gender) {
-                if users[index].distanceMetres <= DISTANCE_LIMIT && users[index].age >= ageMin && users[index].age <= ageMax {
-                    usersWithinRange.append(users[index])
+                users[index].distanceMetres = user.location.distance(from: currentUserLocation)
+
+                if SHOW_DEBUG_CONSOLE {
+                    print("Distance: \(users[index].distanceMetres), allowed distance: \(DISTANCE_LIMIT)")
+                }
+
+                if users[index].distanceMetres <= DISTANCE_LIMIT {
+                    if users[index].age >= ageMin && users[index].age <= ageMax {
+                        usersWithinRange.append(users[index])
+                    }
                 }
             }
         }
     }
 
     private func sendToAPI() {
-        guard let currentUserUID = currentUser?.uid else {
-            return
-        }
-        guard let currentUserURL = currentUser?.urlV else {
-            return
-        }
+        guard let currentUserUID = currentUser?.uid else { return }
+        guard let currentUserURL = currentUser?.urlV else { return }
 
         // For JSON file
         var urls: [String] = []
@@ -199,6 +196,7 @@ class MainViewModel: ObservableObject {
             }
 
             let json = ["uidPrincipal": currentUserUID, "urlPrincipal": currentUserURL, "urls": urls, "uids": uids, "distanciasRasgos": distanceFeatures] as [String: Any]
+            print(json)
             do {
                 let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
 
