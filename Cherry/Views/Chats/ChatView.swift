@@ -221,7 +221,7 @@ private struct MessageBubble: View {
                     Text(message.text)
                         .foregroundColor(textColor)
                         .padding(.horizontal)
-                        .padding(.top, 12)
+                        .padding(.top, 10)
                         .padding(.bottom, 10)
                         .background(isReceived ? Color.gray : Color.accentColor)
                         .cornerRadius(25)

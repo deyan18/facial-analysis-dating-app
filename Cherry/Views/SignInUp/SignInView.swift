@@ -66,7 +66,7 @@ struct SignInView: View {
                     .padding()
                     .navigationBarHidden(true)
                 }
-                .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.8 : 0.45), height: UIScreen.screenHeight * (UIDevice.isIPhone ? 0.65 : 0.5 ))
+                .frame(width: UIScreen.screenWidth * (UIDevice.isIPhone ? 0.8 : 0.45), height: UIScreen.screenHeight * (UIDevice.isIPhone ? 0.65 : 0.6 ))
                 .background(.ultraThinMaterial)
                 .mask(RoundedRectangle(cornerRadius: CARD_RADIUS, style: .continuous))
                 .onTapGesture {
@@ -106,7 +106,7 @@ struct SignInView: View {
                 .sheet(isPresented: $openUserManual) {
                     
                 } content: {
-                    UserManualView()
+                    UserManualView(isSheet: true)
                 }
 
             }

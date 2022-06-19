@@ -113,7 +113,7 @@ struct SignUpView: View {
                 print("Registrado Correcto: \(result?.user.uid ?? "")")
             }
 
-            // Hacemos login
+            // Sign in
             FirebaseManager.shared.auth.signIn(withEmail: email, password: password) { _, err in
                 if let err = err {
                     if SHOW_DEBUG_CONSOLE {

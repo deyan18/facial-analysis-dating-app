@@ -14,11 +14,12 @@ struct PersonalProfileView: View {
     var body: some View {
         
         NavigationView{
+            
             ProfileView(user: vm.currentUser!, isSheet: false, showChatLikeButtons: false, openChat: $useless)
+            
             .navigationTitle("Perfil")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear(){
-                
                 withAnimation(.spring()) {
                     vm.hideTabBar = false
                 }

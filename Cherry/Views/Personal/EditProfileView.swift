@@ -398,9 +398,8 @@ struct EditProfileView: View {
                 }
                 
                 if let urlTemp = urlTemp{
-                    print("Correcto url fotoTemp: \(urlTemp.absoluteString)")
-                    
-                    //Para comprobar que la foto es valida
+                    print("Correct url fotoTemp: \(urlTemp.absoluteString)")
+
                     validateImg(url: urlTemp.absoluteString)
                 }
                 
@@ -531,14 +530,13 @@ struct EditProfileView: View {
             }
         }
         //Tras terminar de subir las fotos se pasa a subir el resto de datos
+        
         dispatchGroup.notify(queue: dispatchQueue) {
-            
             DispatchQueue.main.async {
                     var userData: [String : Any]
                     
                     userData = ["uid": uid,"nombre": name, "sobreMi": aboutMe, "genero": selectedGender, "busco": lookingFor, "url1": url1, "url2": url2, "url3": url3, "urlV": urlV, "fechaNacimiento": birthDate, "atributos": selectedAttributes, "ubicacion": GeoPoint(latitude: lm.lastLocation?.coordinate.latitude ?? 0.0, longitude: lm.lastLocation?.coordinate.longitude ?? 0.0)]
                     
-                    //Se hace un update ya que hay datos que no se modifican aqui
                     FirebaseManager.shared.firestore.collection("usuarios")
                         .document(uid).updateData(userData) { err in
                             if let err = err{
@@ -550,9 +548,7 @@ struct EditProfileView: View {
                             vm.fetchCurrentUser()
                             vm.analyzeUsers()
                         }
-
                 }
-                
         }
     }
     

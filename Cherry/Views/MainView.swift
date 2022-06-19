@@ -21,7 +21,7 @@ struct MainView: View {
 
     var body: some View {
         if vm.signedIn {
-            ZStack { // Acciones tabbar
+            ZStack {
                 switch vm.tabbarIndex {
                 case 0:
                     ForYouView()
@@ -33,7 +33,6 @@ struct MainView: View {
                     ForYouView()
                 }
 
-                // Tabbar
                 if !vm.hideTabBar {
                     VStack {
                         Spacer()

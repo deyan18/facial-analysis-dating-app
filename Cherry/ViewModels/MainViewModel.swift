@@ -32,6 +32,7 @@ class MainViewModel: ObservableObject {
     private var usersListener: ListenerRegistration?
     private var usersAnalyzedListener: ListenerRegistration?
     private var recentMessagesListener: ListenerRegistration?
+    private var ipListener: ListenerRegistration?
 
     // Other
     @Published var recentMessages: [RecentMessageModel] = []
@@ -41,6 +42,7 @@ class MainViewModel: ObservableObject {
 
     init() {
         fetchAttributes()
+        fetchIP()
     }
 
     func fetchCurrentUser() {
@@ -50,6 +52,7 @@ class MainViewModel: ObservableObject {
             .document(uid).getDocument { snapshot, err in
                 if let err = err {
                     print("Error: ", err)
+                    self.signOut()
                     return
                 }
 
@@ -88,6 +91,24 @@ class MainViewModel: ObservableObject {
                     self.users.append(u)
                 }
 
+            })
+        }
+    }
+    
+    private func fetchIP() {
+        ipListener?.remove()
+        ipListener = FirebaseManager.shared.firestore.collection("ipData").addSnapshotListener { querySnapshot, err in
+            if let err = err {
+                print("Error: ", err)
+                return
+            }
+
+
+            querySnapshot?.documents.forEach({ snap in
+                self.apiURL = "http://"
+                self.apiURL += snap.data()["ip"] as! String;
+                self.apiURL += ":8000"
+                print("ip: \(self.apiURL)")
             })
         }
     }

@@ -200,7 +200,8 @@ struct CustomizeProfileView: View {
 
     var nameField: some View {
         VStack {
-            TextFieldCustom(placeholder: "Nombre y Apellidos", text: $name)
+            SectionTitle("Nombre")
+            TextFieldCustom(placeholder: "Nombre", text: $name)
         }.padding(.vertical)
     }
 
@@ -462,7 +463,6 @@ struct CustomizeProfileView: View {
                     }
 
                     self.urlV = urlV?.absoluteString ?? ""
-
                     validateImg(url: self.urlV)
 
                     if SHOW_DEBUG_CONSOLE {
@@ -491,7 +491,6 @@ struct CustomizeProfileView: View {
                             return
                         }
                         vm.showLoadingView = false
-                        //vm.fetchUsuarioActual()
                     }
             }
         }

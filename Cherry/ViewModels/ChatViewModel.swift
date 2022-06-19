@@ -32,14 +32,12 @@ class ChatViewModel: ObservableObject {
                 return
             }
         }
-
         docReceiver.setData(mensajeData2) { err in
             if let err = err {
                 print("Error: \(err)")
                 return
             }
         }
-
         saveRecentMessage(text: text, date: date)
     }
 

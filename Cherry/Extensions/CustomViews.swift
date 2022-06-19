@@ -344,9 +344,7 @@ struct TabBarCustom: View {
             Spacer()
             ForEach(tabBarElements, id: \.self) { element in
                 Button {
-                    withAnimation(.spring(response: SPRING_RESPONSE, dampingFraction: SPRING_DAMPING, blendDuration: 0)) {
                         vm.tabbarIndex = element.index
-                    }
                 } label: {
                     VStack {
                         if vm.tabbarIndex != element.index {
@@ -356,7 +354,7 @@ struct TabBarCustom: View {
                                 Circle().fill(Color.accentColor)
                                     .blur(radius: 10)
                                 tabBarIcon(nombreIcono: element.iconSelected)
-                                    .overlay( // Barrita que aparece encima del icono
+                                    .overlay(
                                         RoundedRectangle(cornerRadius: BUTTON_TFIELD_RADIUS)
                                             .fill(Color.accentColor)
                                             .frame(width: 13, height: 5)
@@ -364,9 +362,7 @@ struct TabBarCustom: View {
                                             .offset(y: UIDevice.isIPhone ? -6 : -12)
                                     )
                             }.frame(width: 30)
-                            
                         }
-
                         tabBarText(nombre: element.text)
                     }.padding(.bottom, 4)
                         
@@ -387,7 +383,7 @@ struct tabBarIcon: View {
     var body: some View {
         Image(systemName: nombreIcono)
             .resizable()
-            .frame(width: 27, height: 25)
+            .frame(width: 24, height: 22)
             .foregroundColor(Color.primary.opacity(ELEMENT_OPACITY))
             
     }
