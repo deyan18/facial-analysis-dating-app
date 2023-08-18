@@ -1,4 +1,4 @@
-# Facial Analysis Dating App in iOS
+# Facial Analysis Dating App (iOS)
 
 ![App screenshots](https://i.imgur.com/MErAENq.png)
 
